@@ -1,0 +1,5 @@
+{
+  "name": "AgroPollos - Control Gerencial",
+  "description": "Sistema de control gerencial para crianza y venta de pollos, con kardex y reportes.",
+  "requestFramePermissions": []
+}
