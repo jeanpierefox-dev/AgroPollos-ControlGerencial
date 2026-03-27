@@ -8,6 +8,13 @@ export interface SaleItem {
   pesoTotal: number;
   precioKilo: number;
   subtotal: number;
+  jabas?: number;
+  pollosPorJaba?: number;
+}
+
+export interface AppConfig {
+  appName: string;
+  logo: string | null;
 }
 
 export interface Transaction {
@@ -18,6 +25,7 @@ export interface Transaction {
   
   // For INGRESO
   galpon?: string;
+  plantel?: string;
   hembrasIn?: number;
   machosIn?: number;
   costoUnitarioIn?: number;
@@ -25,6 +33,8 @@ export interface Transaction {
   // For VENTA
   cliente?: string;
   items?: SaleItem[];
+  jabas?: number;
+  pollosPorJaba?: number;
   
   // Calculated
   totalCosto: number;

@@ -5,6 +5,7 @@ import { Ingresos } from './components/Ingresos';
 import { Ventas } from './components/Ventas';
 import { Kardex } from './components/Kardex';
 import { Reportes } from './components/Reportes';
+import { Configuracion } from './components/Configuracion';
 import { useStore } from './useStore';
 import { Menu, X } from 'lucide-react';
 import { Logo } from './components/Logo';
@@ -13,6 +14,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const store = useStore();
+  const appConfig = store.appConfig;
 
   const renderView = () => {
     switch (currentView) {
@@ -26,6 +28,8 @@ export default function App() {
         return <Kardex store={store} />;
       case 'reportes':
         return <Reportes store={store} />;
+      case 'configuracion':
+        return <Configuracion store={store} />;
       default:
         return <Dashboard store={store} />;
     }
@@ -38,8 +42,12 @@ export default function App() {
       {/* Mobile Header */}
       <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center sticky top-0 z-50 print:hidden">
         <h1 className="text-lg font-bold flex items-center gap-3">
-          <Logo className="w-7 h-7" iconSize={18} />
-          AgroPollos
+          {appConfig.logo ? (
+            <img src={appConfig.logo} alt="Logo" className="w-7 h-7 object-contain rounded" />
+          ) : (
+            <Logo className="w-7 h-7" iconSize={18} />
+          )}
+          {appConfig.appName}
         </h1>
         <button onClick={toggleSidebar} className="p-2 text-slate-300 hover:text-white">
           {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
@@ -63,7 +71,8 @@ export default function App() {
           setCurrentView={(view) => {
             setCurrentView(view);
             setIsSidebarOpen(false);
-          }} 
+          }}
+          store={store}
         />
       </div>
 

@@ -6,7 +6,7 @@ import { Printer, Calendar, TrendingUp, DollarSign, PieChart as PieChartIcon } f
 import { Logo } from './Logo';
 
 export function Reportes({ store }: { store: any }) {
-  const { transactions } = store;
+  const { transactions, appConfig } = store;
   
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
@@ -296,7 +296,7 @@ export function Reportes({ store }: { store: any }) {
 
       {/* Print Footer */}
       <div className="hidden print:block mt-12 pt-8 border-t border-slate-200 text-center text-xs text-slate-400">
-        <p>Este documento es un reporte financiero generado automáticamente por el sistema AgroPollos.</p>
+        <p>Este documento es un reporte financiero generado automáticamente por el sistema {appConfig.appName}.</p>
         <p className="mt-1">Confidencial - Uso Interno</p>
       </div>
     </div>

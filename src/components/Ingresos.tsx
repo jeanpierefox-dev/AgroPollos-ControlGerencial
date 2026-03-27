@@ -5,12 +5,15 @@ import { Pencil, Trash2, X, Plus, Printer } from 'lucide-react';
 import { Logo } from './Logo';
 
 export function Ingresos({ store }: { store: any }) {
-  const { transactions, addTransaction, updateTransaction, deleteTransaction } = store;
+  const { transactions, appConfig, addTransaction, updateTransaction, deleteTransaction } = store;
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [campana, setCampana] = useState('');
+  const [plantel, setPlantel] = useState('');
   const [galpon, setGalpon] = useState('');
   const [hembras, setHembras] = useState('');
   const [machos, setMachos] = useState('');
@@ -32,7 +35,7 @@ export function Ingresos({ store }: { store: any }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!campana || !galpon || !hembras || !machos || !costoUnitario) return;
+    if (!campana || !plantel || !galpon || !hembras || !machos || !costoUnitario) return;
 
     const totalCosto = (parseInt(hembras) + parseInt(machos)) * parseFloat(costoUnitario);
 
@@ -41,6 +44,7 @@ export function Ingresos({ store }: { store: any }) {
       date,
       type: 'INGRESO',
       campana,
+      plantel,
       galpon,
       hembrasIn: parseInt(hembras),
       machosIn: parseInt(machos),
@@ -61,6 +65,7 @@ export function Ingresos({ store }: { store: any }) {
 
   const resetForm = () => {
     setCampana('');
+    setPlantel('');
     setGalpon('');
     setHembras('');
     setMachos('');
@@ -72,7 +77,8 @@ export function Ingresos({ store }: { store: any }) {
   const handleEdit = (t: Transaction) => {
     setIsEditing(t.id);
     setDate(t.date);
-    setCampana(t.campana);
+    setCampana(t.campana || '');
+    setPlantel(t.plantel || '');
     setGalpon(t.galpon || '');
     setHembras(t.hembrasIn?.toString() || '');
     setMachos(t.machosIn?.toString() || '');
@@ -81,8 +87,15 @@ export function Ingresos({ store }: { store: any }) {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('¿Está seguro de eliminar este registro?')) {
-      deleteTransaction(id);
+    setItemToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (itemToDelete) {
+      deleteTransaction(itemToDelete);
+      setIsDeleteModalOpen(false);
+      setItemToDelete(null);
     }
   };
 
@@ -113,6 +126,7 @@ export function Ingresos({ store }: { store: any }) {
                 <tr>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Fecha</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Campaña</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Plantel</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Galpón</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Hembras</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Machos</th>
@@ -131,6 +145,11 @@ export function Ingresos({ store }: { store: any }) {
                       <td className="px-6 py-4">
                         <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-bold border border-blue-100">
                           {t.campana}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2.5 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-bold border border-purple-100">
+                          {t.plantel || '-'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -182,6 +201,9 @@ export function Ingresos({ store }: { store: any }) {
                     <div className="flex gap-2">
                       <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold border border-blue-100 uppercase">
                         {t.campana}
+                      </span>
+                      <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-[10px] font-bold border border-purple-100 uppercase">
+                        {t.plantel || '-'}
                       </span>
                       <span className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-bold border border-amber-100 uppercase">
                         {t.galpon || '-'}
@@ -263,7 +285,7 @@ export function Ingresos({ store }: { store: any }) {
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Campaña</label>
                   <input
@@ -273,6 +295,17 @@ export function Ingresos({ store }: { store: any }) {
                     onChange={(e) => setCampana(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     placeholder="Ej. C-01"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Plantel</label>
+                  <input
+                    type="text"
+                    required
+                    value={plantel}
+                    onChange={(e) => setPlantel(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="Ej. P-01"
                   />
                 </div>
                 <div>
@@ -337,14 +370,53 @@ export function Ingresos({ store }: { store: any }) {
         </div>
       )}
 
+      {/* DELETE CONFIRMATION MODAL */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center gap-4 text-red-600 mb-4">
+              <div className="p-3 bg-red-100 rounded-full">
+                <Trash2 size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">Eliminar Ingreso</h3>
+            </div>
+            <p className="text-slate-600 mb-6">
+              ¿Estás seguro de que deseas eliminar este registro de ingreso? 
+              <strong className="block mt-2 text-red-600">Esta acción no se puede deshacer.</strong>
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setItemToDelete(null);
+                }}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Sí, Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* PRINT VIEW */}
       {printData && (
         <div className="hidden print:block p-8 bg-white text-black min-h-screen">
           <div className="border-b-2 border-slate-800 pb-4 mb-8 flex justify-between items-end">
             <div className="flex items-center gap-4">
-              <Logo className="w-12 h-12" iconSize={32} />
+              {appConfig.logo ? (
+                <img src={appConfig.logo} alt="Logo" className="w-12 h-12 object-contain rounded" />
+              ) : (
+                <Logo className="w-12 h-12" iconSize={32} />
+              )}
               <div>
-                <h1 className="text-3xl font-bold text-slate-900">AgroPollos</h1>
+                <h1 className="text-3xl font-bold text-slate-900">{appConfig.appName}</h1>
                 <p className="text-slate-500">Reporte de Ingreso de Crianza</p>
               </div>
             </div>
@@ -358,6 +430,7 @@ export function Ingresos({ store }: { store: any }) {
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Detalles de Campaña</h3>
               <p className="mb-1"><strong>Campaña:</strong> {printData.campana}</p>
+              <p className="mb-1"><strong>Plantel:</strong> {printData.plantel || '-'}</p>
               <p className="mb-1"><strong>Galpón:</strong> {printData.galpon}</p>
               <p><strong>Fecha de Ingreso:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
             </div>

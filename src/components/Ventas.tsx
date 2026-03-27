@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, SaleItem, TipoPollo } from '../types';
 import { format } from 'date-fns';
-import { Plus, Trash2, ReceiptText, Printer } from 'lucide-react';
+import { Plus, Trash2, ReceiptText, Printer, Pencil } from 'lucide-react';
 import { Logo } from './Logo';
 
 export function Ventas({ store }: { store: any }) {
-  const { transactions, addTransaction, getCampanas, getStockByCampana } = store;
+  const { transactions, appConfig, addTransaction, updateTransaction, deleteTransaction, getCampanas, getStockByCampana, getCampanaInfo } = store;
   
+  const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [cliente, setCliente] = useState('');
   const [campana, setCampana] = useState('');
@@ -17,6 +21,8 @@ export function Ventas({ store }: { store: any }) {
   const [cantidad, setCantidad] = useState('');
   const [pesoTotal, setPesoTotal] = useState('');
   const [precioKilo, setPrecioKilo] = useState('');
+  const [itemJabas, setItemJabas] = useState('');
+  const [itemPollosPorJaba, setItemPollosPorJaba] = useState('');
   
   const [error, setError] = useState('');
   
@@ -35,7 +41,8 @@ export function Ventas({ store }: { store: any }) {
   }, []);
 
   const campanas = getCampanas();
-  const stock = campana ? getStockByCampana(campana) : null;
+  const stock = campana ? getStockByCampana(campana, isEditing || undefined) : null;
+  const printCampanaInfo = printData ? getCampanaInfo(printData.campana || '') : null;
 
   const handleAddItem = () => {
     if (!campana) {
@@ -73,12 +80,16 @@ export function Ventas({ store }: { store: any }) {
       cantidad: qty,
       pesoTotal: parseFloat(pesoTotal),
       precioKilo: parseFloat(precioKilo),
-      subtotal
+      subtotal,
+      jabas: parseInt(itemJabas) || 0,
+      pollosPorJaba: parseInt(itemPollosPorJaba) || 0
     }]);
 
     setCantidad('');
     setPesoTotal('');
     setPrecioKilo('');
+    setItemJabas('');
+    setItemPollosPorJaba('');
     setError('');
   };
 
@@ -102,8 +113,8 @@ export function Ventas({ store }: { store: any }) {
     const totalCosto = totalPollos * costoUnitario;
     const ganancia = totalVenta - totalCosto;
 
-    const newTransaction: Transaction = {
-      id: crypto.randomUUID(),
+    const transactionData: Transaction = {
+      id: isEditing || crypto.randomUUID(),
       date,
       type: 'VENTA',
       campana,
@@ -112,14 +123,49 @@ export function Ventas({ store }: { store: any }) {
       totalCosto,
       totalVenta,
       ganancia,
+      jabas: items.reduce((acc, item) => acc + (item.jabas || 0), 0),
+      pollosPorJaba: items.length > 0 ? items[0].pollosPorJaba : 0, // Keep for backward compatibility or general info
     };
 
-    addTransaction(newTransaction);
+    if (isEditing) {
+      updateTransaction(isEditing, transactionData);
+      setIsEditing(null);
+    } else {
+      addTransaction(transactionData);
+    }
     
     // Reset
     setItems([]);
     setCliente('');
     setError('');
+  };
+
+  const handleEditVenta = (t: Transaction) => {
+    setIsEditing(t.id);
+    setDate(t.date);
+    setCampana(t.campana || '');
+    setCliente(t.cliente || '');
+    setItems(t.items || []);
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteVenta = (id: string) => {
+    setItemToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (itemToDelete) {
+      deleteTransaction(itemToDelete);
+      setIsDeleteModalOpen(false);
+      setItemToDelete(null);
+      if (isEditing === itemToDelete) {
+        setIsEditing(null);
+        setItems([]);
+        setCliente('');
+      }
+    }
   };
 
   const ventas = transactions.filter((t: Transaction) => t.type === 'VENTA').reverse();
@@ -142,7 +188,9 @@ export function Ventas({ store }: { store: any }) {
                 <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                   <ReceiptText size={24} />
                 </div>
-                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Nueva Venta</h3>
+                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">
+                  {isEditing ? 'Editar Venta' : 'Nueva Venta'}
+                </h3>
               </div>
               
               {error && (
@@ -205,7 +253,7 @@ export function Ventas({ store }: { store: any }) {
 
               <div className="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-200 mb-6">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Agregar Ítem a Boleta</h4>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+                <div className="grid grid-cols-2 md:grid-cols-7 gap-4 items-end">
                   <div className="col-span-2 md:col-span-1">
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Tipo</label>
                     <select
@@ -254,6 +302,28 @@ export function Ventas({ store }: { store: any }) {
                       placeholder="0.00"
                     />
                   </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">N° Jabas</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={itemJabas}
+                      onChange={(e) => setItemJabas(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Pollos x Jaba</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={itemPollosPorJaba}
+                      onChange={(e) => setItemPollosPorJaba(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                      placeholder="0"
+                    />
+                  </div>
                   <div className="col-span-2 md:col-span-1">
                     <button
                       type="button"
@@ -275,6 +345,8 @@ export function Ventas({ store }: { store: any }) {
                         <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest">Tipo</th>
                         <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest text-right">Cant.</th>
                         <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest text-right">Peso (Kg)</th>
+                        <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest text-right">Jabas</th>
+                        <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest text-right">P/Jaba</th>
                         <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest text-right">Precio/Kg</th>
                         <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest text-right">Subtotal</th>
                         <th className="px-4 py-3"></th>
@@ -286,6 +358,8 @@ export function Ventas({ store }: { store: any }) {
                           <td className="px-4 py-3 font-medium text-slate-700">{item.tipo}</td>
                           <td className="px-4 py-3 text-right font-semibold">{item.cantidad}</td>
                           <td className="px-4 py-3 text-right">{item.pesoTotal.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-right">{item.jabas || 0}</td>
+                          <td className="px-4 py-3 text-right">{item.pollosPorJaba || 0}</td>
                           <td className="px-4 py-3 text-right text-slate-500">S/ {item.precioKilo.toFixed(2)}</td>
                           <td className="px-4 py-3 text-right font-bold text-slate-900">S/ {item.subtotal.toFixed(2)}</td>
                           <td className="px-4 py-3 text-center">
@@ -311,13 +385,32 @@ export function Ventas({ store }: { store: any }) {
                 </div>
               </div>
 
-              <button
-                onClick={handleSaveVenta}
-                disabled={items.length === 0}
-                className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none uppercase tracking-widest text-sm"
-              >
-                Emitir Boleta de Venta
-              </button>
+              <div className="flex gap-4">
+                {isEditing && (
+                  <button
+                    onClick={() => {
+                      setIsEditing(null);
+                      setItems([]);
+                      setCliente('');
+                      setCampana('');
+                      setJabas('');
+                      setPollosPorJaba('');
+                      setDate(format(new Date(), 'yyyy-MM-dd'));
+                      setError('');
+                    }}
+                    className="w-1/3 bg-slate-100 text-slate-600 font-bold py-4 rounded-2xl hover:bg-slate-200 transition-all uppercase tracking-widest text-sm"
+                  >
+                    Cancelar
+                  </button>
+                )}
+                <button
+                  onClick={handleSaveVenta}
+                  disabled={items.length === 0}
+                  className={`${isEditing ? 'w-2/3' : 'w-full'} bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none uppercase tracking-widest text-sm`}
+                >
+                  {isEditing ? 'Guardar Cambios' : 'Emitir Boleta de Venta'}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -335,14 +428,30 @@ export function Ventas({ store }: { store: any }) {
                     const totalPeso = t.items?.reduce((acc, i) => acc + i.pesoTotal, 0) || 0;
                     return (
                       <div key={t.id} className="border border-slate-100 bg-slate-50/30 rounded-2xl p-4 hover:border-blue-200 hover:bg-white transition-all group relative">
-                        <button 
-                          onClick={() => setPrintData(t)}
-                          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
-                          title="Imprimir Boleta"
-                        >
-                          <Printer size={18} />
-                        </button>
-                        <div className="flex justify-between items-start mb-3 pr-10">
+                        <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button 
+                            onClick={() => setPrintData(t)}
+                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                            title="Imprimir Boleta"
+                          >
+                            <Printer size={18} />
+                          </button>
+                          <button 
+                            onClick={() => handleEditVenta(t)}
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                            title="Editar Venta"
+                          >
+                            <Pencil size={18} />
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteVenta(t.id)}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                            title="Eliminar Venta"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                        <div className="flex justify-between items-start mb-3 pr-24">
                           <div>
                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{format(new Date(t.date), 'dd MMM yyyy')}</div>
                             <h4 className="font-bold text-slate-800 leading-tight">{t.cliente || 'Cliente General'}</h4>
@@ -379,84 +488,282 @@ export function Ventas({ store }: { store: any }) {
         </div>
       </div>
 
+      {/* DELETE CONFIRMATION MODAL */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center gap-4 text-red-600 mb-4">
+              <div className="p-3 bg-red-100 rounded-full">
+                <Trash2 size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">Eliminar Venta</h3>
+            </div>
+            <p className="text-slate-600 mb-6">
+              ¿Estás seguro de que deseas eliminar este registro de venta? 
+              <strong className="block mt-2 text-red-600">Esta acción no se puede deshacer.</strong>
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setItemToDelete(null);
+                }}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Sí, Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* PRINT VIEW */}
       {printData && (
-        <div className="hidden print:block p-12 bg-white text-black min-h-screen font-sans">
-          <div className="flex justify-between items-start mb-12 border-b-4 border-slate-900 pb-8">
-            <div className="flex items-center gap-4">
-              <Logo className="w-16 h-16" iconSize={40} />
-              <div>
-                <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1 uppercase">AgroPollos</h1>
-                <p className="text-lg font-bold text-slate-600 uppercase tracking-widest">Comprobante de Venta</p>
-                <div className="mt-4 text-sm text-slate-500 font-medium">
-                  <p>Granja de Crianza y Venta de Aves</p>
-                  <p>Dirección: Sector Las Praderas S/N</p>
-                  <p>Tel: 987 654 321</p>
+        <div className="hidden print:block bg-white text-black font-sans">
+          
+          {/* 1. ORDEN DE DESPACHO */}
+          <div className="p-12 min-h-screen relative" style={{ pageBreakAfter: 'always' }}>
+            <div className="flex justify-between items-start mb-8 border-b-4 border-slate-900 pb-6">
+              <div className="flex items-center gap-4">
+                {appConfig.logo ? (
+                  <img src={appConfig.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />
+                ) : (
+                  <Logo className="w-16 h-16" iconSize={40} />
+                )}
+                <div>
+                  <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1 uppercase">{appConfig.appName}</h1>
+                  <p className="text-lg font-bold text-slate-600 uppercase tracking-widest">Orden de Despacho</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="border-4 border-slate-900 p-4 inline-block">
+                  <p className="text-xs font-black uppercase tracking-widest mb-1">N° Orden</p>
+                  <p className="text-2xl font-black">{printData.id.split('-')[0].toUpperCase()}</p>
+                </div>
+                <div className="mt-4 text-sm font-bold uppercase tracking-wider">
+                  <p><strong>Fecha:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
                 </div>
               </div>
             </div>
-            <div className="text-right">
-              <div className="border-4 border-slate-900 p-4 inline-block">
-                <p className="text-xs font-black uppercase tracking-widest mb-1">Boleta de Venta</p>
-                <p className="text-2xl font-black">N° {printData.id.split('-')[0].toUpperCase()}</p>
+
+            <div className="mb-8 grid grid-cols-2 gap-8">
+              <div className="border-l-4 border-slate-200 pl-6">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Datos de Origen</h3>
+                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Plantel: <span className="text-slate-900 font-black">{printCampanaInfo?.plantel || '-'}</span></p>
+                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Galpón: <span className="text-slate-900 font-black">{printCampanaInfo?.galpon || '-'}</span></p>
+                <p className="text-sm font-bold text-slate-700 uppercase">Campaña: <span className="text-slate-900 font-black">{printData.campana}</span></p>
               </div>
-              <div className="mt-4 text-sm font-bold uppercase tracking-wider">
-                <p><strong>Fecha:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
+              <div className="border-l-4 border-slate-200 pl-6">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Datos de Despacho</h3>
+                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Cliente: <span className="text-slate-900 font-black">{printData.cliente || 'CLIENTE GENERAL'}</span></p>
+                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Total Jabas: <span className="text-slate-900 font-black">{printData.items?.reduce((acc, item) => acc + (item.jabas || 0), 0) || 0}</span></p>
               </div>
             </div>
-          </div>
 
-          <div className="mb-12 grid grid-cols-2 gap-12">
-            <div className="border-l-4 border-slate-200 pl-6">
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Datos del Adquiriente</h3>
-              <p className="text-xl font-black text-slate-900 mb-1">{printData.cliente || 'CLIENTE GENERAL'}</p>
-              <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Campaña: {printData.campana}</p>
-            </div>
-          </div>
-
-          <table className="w-full text-left border-collapse mb-12">
-            <thead>
-              <tr className="bg-slate-900 text-white">
-                <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Cant.</th>
-                <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Descripción del Producto</th>
-                <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso (Kg)</th>
-                <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Precio Unit.</th>
-                <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Importe Total</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y-2 divide-slate-100">
-              {printData.items?.map((item, index) => (
-                <tr key={index} className="bg-white">
-                  <td className="px-6 py-5 text-center font-bold text-lg">{item.cantidad}</td>
-                  <td className="px-6 py-5 font-bold uppercase text-sm">Pollo {item.tipo.replace('_', ' ')}</td>
-                  <td className="px-6 py-5 text-right font-medium">{item.pesoTotal.toFixed(2)}</td>
-                  <td className="px-6 py-5 text-right font-medium">S/ {item.precioKilo.toFixed(2)}</td>
-                  <td className="px-6 py-5 text-right font-black text-lg">S/ {item.subtotal.toFixed(2)}</td>
+            <table className="w-full text-left border-collapse mb-12">
+              <thead>
+                <tr className="bg-slate-900 text-white">
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Cant.</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Tipo de Pollo</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Sexo</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Jabas</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">P/Jaba</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso Promedio (Kg)</th>
                 </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-4 border-slate-900">
-                <td colSpan={3} className="px-6 py-6"></td>
-                <td className="px-6 py-6 text-right font-black uppercase text-sm tracking-widest bg-slate-50">TOTAL S/:</td>
-                <td className="px-6 py-6 text-right font-black text-3xl bg-slate-50">
-                  {printData.totalVenta.toFixed(2)}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+              </thead>
+              <tbody className="divide-y-2 divide-slate-100">
+                {printData.items?.map((item, index) => {
+                  const sexo = (item.tipo === 'BRASA' || item.tipo === 'TIPO_HEMBRA') ? 'Hembra' : 'Macho';
+                  const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
+                  return (
+                    <tr key={index} className="bg-white">
+                      <td className="px-6 py-5 text-center font-bold text-lg">{item.cantidad}</td>
+                      <td className="px-6 py-5 font-bold uppercase text-sm">{item.tipo.replace('_', ' ')}</td>
+                      <td className="px-6 py-5 font-bold uppercase text-sm">{sexo}</td>
+                      <td className="px-6 py-5 text-right font-bold text-lg">{item.jabas || 0}</td>
+                      <td className="px-6 py-5 text-right font-bold text-lg">{item.pollosPorJaba || 0}</td>
+                      <td className="px-6 py-5 text-right font-black text-lg">{pesoPromedio}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
 
-          <div className="mt-32 grid grid-cols-2 gap-24 px-12">
-            <div className="text-center">
-              <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma del Cliente</div>
-            </div>
-            <div className="text-center">
-              <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Autorizada</div>
+            <div className="mt-32 grid grid-cols-2 gap-24 px-12">
+              <div className="text-center">
+                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Despachador</div>
+              </div>
+              <div className="text-center">
+                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Transportista</div>
+              </div>
             </div>
           </div>
-          
-          <div className="mt-24 text-center">
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Gracias por su preferencia - AgroPollos</p>
+
+          {/* 2. GUÍA DE REMISIÓN */}
+          <div className="p-12 min-h-screen relative" style={{ pageBreakAfter: 'always' }}>
+            <div className="flex justify-between items-start mb-8 border-b-4 border-slate-900 pb-6">
+              <div className="flex items-center gap-4">
+                {appConfig.logo ? (
+                  <img src={appConfig.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />
+                ) : (
+                  <Logo className="w-16 h-16" iconSize={40} />
+                )}
+                <div>
+                  <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1 uppercase">{appConfig.appName}</h1>
+                  <p className="text-lg font-bold text-slate-600 uppercase tracking-widest">Guía de Remisión Remitente</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="border-4 border-slate-900 p-4 inline-block">
+                  <p className="text-xs font-black uppercase tracking-widest mb-1">Guía N°</p>
+                  <p className="text-2xl font-black">T001-{printData.id.split('-')[0].toUpperCase()}</p>
+                </div>
+                <div className="mt-4 text-sm font-bold uppercase tracking-wider">
+                  <p><strong>Fecha de Traslado:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-8 grid grid-cols-2 gap-8">
+              <div className="border-l-4 border-slate-200 pl-6">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Punto de Partida</h3>
+                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Granja {appConfig.appName}</p>
+                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Plantel: {printCampanaInfo?.plantel || '-'}</p>
+                <p className="text-sm font-bold text-slate-700 uppercase">Galpón: {printCampanaInfo?.galpon || '-'}</p>
+              </div>
+              <div className="border-l-4 border-slate-200 pl-6">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Punto de Llegada / Destinatario</h3>
+                <p className="text-xl font-black text-slate-900 mb-1">{printData.cliente || 'CLIENTE GENERAL'}</p>
+              </div>
+            </div>
+
+            <table className="w-full text-left border-collapse mb-12">
+              <thead>
+                <tr className="bg-slate-900 text-white">
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Cant.</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Descripción</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso Total (Kg)</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso Promedio (Kg)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y-2 divide-slate-100">
+                {printData.items?.map((item, index) => {
+                  const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
+                  return (
+                    <tr key={index} className="bg-white">
+                      <td className="px-6 py-5 text-center font-bold text-lg">{item.cantidad}</td>
+                      <td className="px-6 py-5 font-bold uppercase text-sm">Pollo Vivo - {item.tipo.replace('_', ' ')}</td>
+                      <td className="px-6 py-5 text-right font-medium">{item.pesoTotal.toFixed(2)}</td>
+                      <td className="px-6 py-5 text-right font-black text-lg">{pesoPromedio}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            <div className="mt-32 grid grid-cols-2 gap-24 px-12">
+              <div className="text-center">
+                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Remitente</div>
+              </div>
+              <div className="text-center">
+                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Destinatario</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. BOLETA DE VENTA */}
+          <div className="p-12 min-h-screen relative">
+            <div className="flex justify-between items-start mb-12 border-b-4 border-slate-900 pb-8">
+              <div className="flex items-center gap-4">
+                {appConfig.logo ? (
+                  <img src={appConfig.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />
+                ) : (
+                  <Logo className="w-16 h-16" iconSize={40} />
+                )}
+                <div>
+                  <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1 uppercase">{appConfig.appName}</h1>
+                  <p className="text-lg font-bold text-slate-600 uppercase tracking-widest">Comprobante de Venta</p>
+                  <div className="mt-4 text-sm text-slate-500 font-medium">
+                    <p>Granja de Crianza y Venta de Aves</p>
+                    <p>Dirección: Sector Las Praderas S/N</p>
+                    <p>Tel: 987 654 321</p>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="border-4 border-slate-900 p-4 inline-block">
+                  <p className="text-xs font-black uppercase tracking-widest mb-1">Boleta de Venta</p>
+                  <p className="text-2xl font-black">B001-{printData.id.split('-')[0].toUpperCase()}</p>
+                </div>
+                <div className="mt-4 text-sm font-bold uppercase tracking-wider">
+                  <p><strong>Fecha:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-12 grid grid-cols-2 gap-12">
+              <div className="border-l-4 border-slate-200 pl-6">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Datos del Adquiriente</h3>
+                <p className="text-xl font-black text-slate-900 mb-1">{printData.cliente || 'CLIENTE GENERAL'}</p>
+                <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Campaña: {printData.campana}</p>
+              </div>
+            </div>
+
+            <table className="w-full text-left border-collapse mb-12">
+              <thead>
+                <tr className="bg-slate-900 text-white">
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Cant.</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Descripción del Producto</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso Prom.</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso Total</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Precio Unit.</th>
+                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Importe Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y-2 divide-slate-100">
+                {printData.items?.map((item, index) => {
+                  const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
+                  return (
+                    <tr key={index} className="bg-white">
+                      <td className="px-6 py-5 text-center font-bold text-lg">{item.cantidad}</td>
+                      <td className="px-6 py-5 font-bold uppercase text-sm">Pollo {item.tipo.replace('_', ' ')}</td>
+                      <td className="px-6 py-5 text-right font-medium">{pesoPromedio} Kg</td>
+                      <td className="px-6 py-5 text-right font-medium">{item.pesoTotal.toFixed(2)} Kg</td>
+                      <td className="px-6 py-5 text-right font-medium">S/ {item.precioKilo.toFixed(2)}</td>
+                      <td className="px-6 py-5 text-right font-black text-lg">S/ {item.subtotal.toFixed(2)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-4 border-slate-900">
+                  <td colSpan={4} className="px-6 py-6"></td>
+                  <td className="px-6 py-6 text-right font-black uppercase text-sm tracking-widest bg-slate-50">TOTAL S/:</td>
+                  <td className="px-6 py-6 text-right font-black text-3xl bg-slate-50">
+                    {printData.totalVenta.toFixed(2)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div className="mt-32 grid grid-cols-2 gap-24 px-12">
+              <div className="text-center">
+                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma del Cliente</div>
+              </div>
+              <div className="text-center">
+                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Autorizada</div>
+              </div>
+            </div>
+            
+            <div className="mt-24 text-center">
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Gracias por su preferencia - {appConfig.appName}</p>
+            </div>
           </div>
         </div>
       )}
