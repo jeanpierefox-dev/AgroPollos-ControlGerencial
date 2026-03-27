@@ -2,6 +2,7 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from 'recharts';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Printer } from 'lucide-react';
 
 export function Dashboard({ store }: { store: any }) {
   const { transactions, getGlobalStock, getCampanas, getCampanaInfo } = store;
@@ -57,139 +58,164 @@ export function Dashboard({ store }: { store: any }) {
   }).sort((a: any, b: any) => b.utilidad - a.utilidad).slice(0, 5); // Top 5
 
   return (
-    <div className="p-8 bg-[#f5f5f5] min-h-full font-sans">
-      <div className="mb-8 border-b border-slate-200 pb-4">
-        <h2 className="text-3xl font-light text-slate-900 tracking-tight">Resumen Gerencial</h2>
-        <p className="text-slate-500 mt-1 text-sm uppercase tracking-widest">Indicadores Financieros y Operativos</p>
+    <div className="p-4 md:p-8 bg-[#f8fafc] min-h-full font-sans print:bg-white print:p-0">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-slate-200 pb-6 print:mb-12">
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Resumen Gerencial</h2>
+          <p className="text-slate-500 mt-1 text-xs font-bold uppercase tracking-[0.2em]">Indicadores de Rendimiento y Salud Financiera</p>
+        </div>
+        <button 
+          onClick={() => window.print()}
+          className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm print:hidden"
+        >
+          <Printer size={18} />
+          Exportar PDF
+        </button>
       </div>
       
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-          <p className="text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Ingresos Brutos</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
+          <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Ingresos Brutos</p>
           <div className="flex items-baseline gap-1">
-            <span className="text-sm text-slate-400">S/</span>
-            <p className="text-2xl font-light text-slate-900">{totalVentas.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <span className="text-sm font-bold text-slate-300">S/</span>
+            <p className="text-2xl font-black text-slate-900 tracking-tight">{totalVentas.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </div>
         
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-          <p className="text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Costos Totales</p>
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
+          <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Costos Totales</p>
           <div className="flex items-baseline gap-1">
-            <span className="text-sm text-slate-400">S/</span>
-            <p className="text-2xl font-light text-slate-900">{totalCostos.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <span className="text-sm font-bold text-slate-300">S/</span>
+            <p className="text-2xl font-black text-slate-900 tracking-tight">{totalCostos.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-xl p-5 shadow-sm border border-slate-800 relative overflow-hidden">
-          <p className="text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Utilidad Neta</p>
+        <div className="bg-slate-900 rounded-2xl p-6 shadow-lg border border-slate-800 relative overflow-hidden group">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
+          <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Utilidad Neta</p>
           <div className="flex items-baseline gap-1">
-            <span className="text-sm text-emerald-400">S/</span>
-            <p className="text-2xl font-light text-white">{totalGanancia.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <span className="text-sm font-bold text-emerald-400">S/</span>
+            <p className="text-2xl font-black text-white tracking-tight">{totalGanancia.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-          <p className="text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">Margen de Utilidad</p>
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
+          <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Margen Bruto</p>
           <div className="flex items-baseline gap-1">
-            <p className={`text-2xl font-light ${margenUtilidad >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            <p className={`text-2xl font-black tracking-tight ${margenUtilidad >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {margenUtilidad.toFixed(1)}
             </p>
-            <span className="text-sm text-slate-400">%</span>
+            <span className="text-sm font-bold text-slate-300">%</span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-          <p className="text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">ROI Global</p>
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
+          <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">ROI Global</p>
           <div className="flex items-baseline gap-1">
-            <p className={`text-2xl font-light ${roi >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+            <p className={`text-2xl font-black tracking-tight ${roi >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
               {roi.toFixed(1)}
             </p>
-            <span className="text-sm text-slate-400">%</span>
+            <span className="text-sm font-bold text-slate-300">%</span>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {/* Chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-slate-200 h-[400px]">
-          <h3 className="text-sm font-semibold text-slate-800 mb-6 uppercase tracking-wider">Flujo de Ingresos (Últimos Días)</h3>
+        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 h-[400px] print:h-[300px]">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Flujo de Caja (Ventas vs Utilidad)</h3>
+            <div className="flex gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-slate-900"></span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Ventas</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Utilidad</span>
+              </div>
+            </div>
+          </div>
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={(value) => `S/${value}`} dx={-10} />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} tickFormatter={(value) => `S/${value}`} dx={-10} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px', fontWeight: 'bold' }}
                   formatter={(value: number) => [`S/ ${value.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`, '']}
                 />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                <Line type="monotone" dataKey="ventas" name="Ingreso Bruto" stroke="#0f172a" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="ganancia" name="Utilidad Neta" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                <Line type="monotone" dataKey="ventas" stroke="#0f172a" strokeWidth={4} dot={{ r: 0 }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                <Line type="monotone" dataKey="ganancia" stroke="#10b981" strokeWidth={4} dot={{ r: 0 }} activeDot={{ r: 6, strokeWidth: 0 }} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-slate-400 text-sm">
-              Datos insuficientes para graficar.
+            <div className="h-full flex items-center justify-center text-slate-400 text-sm italic">
+              Datos insuficientes para graficar el flujo.
             </div>
           )}
         </div>
 
         {/* Stock Overview */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col">
-          <h3 className="text-sm font-semibold text-slate-800 mb-6 uppercase tracking-wider">Inventario Vivo</h3>
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col">
+          <h3 className="text-xs font-black text-slate-800 mb-8 uppercase tracking-widest">Inventario en Granja</h3>
           <div className="flex-1 flex flex-col justify-center gap-6">
-            <div className="p-4 rounded-lg bg-slate-50 border border-slate-100 flex justify-between items-center">
+            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex justify-between items-center group hover:bg-white hover:shadow-md transition-all">
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Hembras</p>
-                <p className="text-3xl font-light text-slate-800">{stock.hembras.toLocaleString()}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Hembras (Brasa/Tipo)</p>
+                <p className="text-3xl font-black text-slate-900 tracking-tighter">{stock.hembras.toLocaleString()}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold">H</div>
+              <div className="h-14 w-14 rounded-2xl bg-pink-50 text-pink-600 flex items-center justify-center font-black text-xl shadow-sm">H</div>
             </div>
-            <div className="p-4 rounded-lg bg-slate-50 border border-slate-100 flex justify-between items-center">
+            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex justify-between items-center group hover:bg-white hover:shadow-md transition-all">
               <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Machos</p>
-                <p className="text-3xl font-light text-slate-800">{stock.machos.toLocaleString()}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Machos (Presa/Tipo)</p>
+                <p className="text-3xl font-black text-slate-900 tracking-tighter">{stock.machos.toLocaleString()}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">M</div>
+              <div className="h-14 w-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-xl shadow-sm">M</div>
             </div>
-            <div className="pt-4 border-t border-slate-100 flex justify-between items-end">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Aves</p>
-              <p className="text-xl font-medium text-slate-900">{(stock.hembras + stock.machos).toLocaleString()}</p>
+            <div className="pt-6 border-t-2 border-dashed border-slate-100 flex justify-between items-end">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Total Población</p>
+              <p className="text-2xl font-black text-slate-900 tracking-tighter">{(stock.hembras + stock.machos).toLocaleString()}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Top Campaigns Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="px-6 py-5 border-b border-slate-200 flex justify-between items-center">
-          <h3 className="text-sm font-semibold text-slate-800 uppercase tracking-wider">Top Campañas por Utilidad</h3>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-200 bg-slate-50/50">
+          <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Rendimiento por Campaña (Top 5)</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500">
+            <thead className="bg-white text-slate-400 border-b border-slate-100">
               <tr>
-                <th className="px-6 py-3 font-medium uppercase tracking-wider text-xs">Campaña</th>
-                <th className="px-6 py-3 font-medium uppercase tracking-wider text-xs">Galpón</th>
-                <th className="px-6 py-3 font-medium uppercase tracking-wider text-xs text-right">Ingresos</th>
-                <th className="px-6 py-3 font-medium uppercase tracking-wider text-xs text-right">Costos</th>
-                <th className="px-6 py-3 font-medium uppercase tracking-wider text-xs text-right">Utilidad</th>
-                <th className="px-6 py-3 font-medium uppercase tracking-wider text-xs text-right">ROI</th>
+                <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">Campaña</th>
+                <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">Galpón</th>
+                <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px] text-right">Ingresos</th>
+                <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px] text-right">Costos</th>
+                <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px] text-right">Utilidad</th>
+                <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px] text-right">ROI</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-50">
               {campanaPerformance.length > 0 ? (
                 campanaPerformance.map((row: any, idx: number) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-900">{row.campana}</td>
-                    <td className="px-6 py-4 text-slate-600">{row.galpon}</td>
-                    <td className="px-6 py-4 text-right text-slate-600">S/ {row.ingresos.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
-                    <td className="px-6 py-4 text-right text-slate-600">S/ {row.costos.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
-                    <td className="px-6 py-4 text-right font-medium text-emerald-600">S/ {row.utilidad.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
+                  <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-slate-900">{row.campana}</td>
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase tracking-wider">
+                        {row.galpon}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right font-semibold text-slate-600">S/ {row.ingresos.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-6 py-4 text-right font-semibold text-slate-600">S/ {row.costos.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-6 py-4 text-right font-black text-emerald-600">S/ {row.utilidad.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
                     <td className="px-6 py-4 text-right">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${row.roi >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${row.roi >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
                         {row.roi.toFixed(1)}%
                       </span>
                     </td>
@@ -197,8 +223,8 @@ export function Dashboard({ store }: { store: any }) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
-                    No hay campañas registradas.
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400 italic">
+                    No hay campañas registradas para mostrar rendimiento.
                   </td>
                 </tr>
               )}

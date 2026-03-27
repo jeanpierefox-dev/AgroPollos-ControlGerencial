@@ -15,8 +15,8 @@ export function Sidebar({ currentView, setCurrentView }: SidebarProps) {
   ];
 
   return (
-    <div className="w-64 bg-slate-900 text-slate-300 flex flex-col h-screen sticky top-0">
-      <div className="p-6 border-b border-slate-800">
+    <div className="flex flex-col h-full bg-slate-900 text-slate-300">
+      <div className="p-6 border-b border-slate-800 hidden md:block">
         <h1 className="text-xl font-bold text-white flex items-center gap-2">
           <span className="bg-emerald-500 text-slate-900 p-1 rounded-md">
             <ArrowUpFromLine size={20} />

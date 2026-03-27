@@ -6,9 +6,11 @@ import { Ventas } from './components/Ventas';
 import { Kardex } from './components/Kardex';
 import { Reportes } from './components/Reportes';
 import { useStore } from './useStore';
+import { Menu, X } from 'lucide-react';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const store = useStore();
 
   const renderView = () => {
@@ -28,11 +30,44 @@ export default function App() {
     }
   };
 
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900 print:block print:bg-white">
-      <div className="print:hidden">
-        <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 font-sans text-slate-900 print:block print:bg-white">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center sticky top-0 z-50 print:hidden">
+        <h1 className="text-lg font-bold flex items-center gap-2">
+          <span className="bg-emerald-500 text-slate-900 p-1 rounded-md">
+            AP
+          </span>
+          AgroPollos
+        </h1>
+        <button onClick={toggleSidebar} className="p-2 text-slate-300 hover:text-white">
+          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </div>
+
+      {/* Sidebar Overlay for Mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <div className={`
+        fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out bg-slate-900 md:relative md:translate-x-0 print:hidden
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <Sidebar 
+          currentView={currentView} 
+          setCurrentView={(view) => {
+            setCurrentView(view);
+            setIsSidebarOpen(false);
+          }} 
+        />
+      </div>
+
       <main className="flex-1 overflow-y-auto print:overflow-visible print:block">
         {renderView()}
       </main>

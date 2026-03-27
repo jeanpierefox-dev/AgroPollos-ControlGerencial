@@ -89,62 +89,76 @@ export function Ingresos({ store }: { store: any }) {
 
   return (
     <>
-      <div className="p-8 print:hidden">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-slate-800">Ingreso de Pollos Bebés</h2>
+      <div className="p-4 md:p-8 print:hidden">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Ingreso de Pollos Bebés</h2>
+            <p className="text-slate-500 text-sm">Registro y control de nuevos lotes de crianza</p>
+          </div>
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
+            className="w-full md:w-auto bg-emerald-600 text-white px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md flex items-center justify-center gap-2 font-medium"
           >
-            <Plus size={18} />
+            <Plus size={20} />
             Nuevo Ingreso
           </button>
         </div>
         
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        {/* Desktop Table View */}
+        <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
+              <thead className="bg-slate-50/50 text-slate-500 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-3 font-medium">Fecha</th>
-                  <th className="px-6 py-3 font-medium">Campaña</th>
-                  <th className="px-6 py-3 font-medium">Galpón</th>
-                  <th className="px-6 py-3 font-medium">Hembras</th>
-                  <th className="px-6 py-3 font-medium">Machos</th>
-                  <th className="px-6 py-3 font-medium">Costo Unit.</th>
-                  <th className="px-6 py-3 font-medium">Costo Total</th>
-                  <th className="px-6 py-3 font-medium text-right">Acciones</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Fecha</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Campaña</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Galpón</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Hembras</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Machos</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Costo Unit.</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Costo Total</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {ingresos.length > 0 ? (
-                  ingresos.map((t: Transaction) => {
-                    return (
-                      <tr key={t.id} className="hover:bg-slate-50/50">
-                        <td className="px-6 py-4 whitespace-nowrap">{format(new Date(t.date), 'dd/MM/yyyy')}</td>
-                        <td className="px-6 py-4 font-medium text-slate-700">{t.campana}</td>
-                        <td className="px-6 py-4">{t.galpon || '-'}</td>
-                        <td className="px-6 py-4">{t.hembrasIn}</td>
-                        <td className="px-6 py-4">{t.machosIn}</td>
-                        <td className="px-6 py-4">S/ {t.costoUnitarioIn?.toFixed(2)}</td>
-                        <td className="px-6 py-4 font-medium">S/ {t.totalCosto.toFixed(2)}</td>
-                        <td className="px-6 py-4 text-right">
-                          <button onClick={() => setPrintData(t)} className="text-slate-500 hover:text-slate-700 p-1" title="Imprimir Reporte">
-                            <Printer size={16} />
+                  ingresos.map((t: Transaction) => (
+                    <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-900">
+                        {format(new Date(t.date), 'dd/MM/yyyy')}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-bold border border-blue-100">
+                          {t.campana}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-md text-xs font-bold border border-amber-100">
+                          {t.galpon || '-'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 font-medium">{t.hembrasIn}</td>
+                      <td className="px-6 py-4 font-medium">{t.machosIn}</td>
+                      <td className="px-6 py-4 text-slate-500">S/ {t.costoUnitarioIn?.toFixed(2)}</td>
+                      <td className="px-6 py-4 font-bold text-slate-900">S/ {t.totalCosto.toFixed(2)}</td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => setPrintData(t)} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Imprimir Reporte">
+                            <Printer size={18} />
                           </button>
-                          <button onClick={() => handleEdit(t)} className="text-blue-500 hover:text-blue-700 p-1 ml-2" title="Editar">
-                            <Pencil size={16} />
+                          <button onClick={() => handleEdit(t)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                            <Pencil size={18} />
                           </button>
-                          <button onClick={() => handleDelete(t.id)} className="text-red-500 hover:text-red-700 p-1 ml-2" title="Eliminar">
-                            <Trash2 size={16} />
+                          <button onClick={() => handleDelete(t.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
+                            <Trash2 size={18} />
                           </button>
-                        </td>
-                      </tr>
-                    );
-                  })
+                        </div>
+                      </td>
+                    </tr>
+                  ))
                 ) : (
                   <tr>
-                    <td colSpan={8} className="px-6 py-8 text-center text-slate-400">
+                    <td colSpan={8} className="px-6 py-12 text-center text-slate-400 italic">
                       No hay ingresos registrados.
                     </td>
                   </tr>
@@ -152,6 +166,76 @@ export function Ingresos({ store }: { store: any }) {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-4">
+          {ingresos.length > 0 ? (
+            ingresos.map((t: Transaction) => (
+              <div key={t.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                      {format(new Date(t.date), 'dd/MM/yyyy')}
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold border border-blue-100 uppercase">
+                        {t.campana}
+                      </span>
+                      <span className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-bold border border-amber-100 uppercase">
+                        {t.galpon || '-'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-slate-500 mb-1">Costo Total</div>
+                    <div className="text-lg font-bold text-slate-900">S/ {t.totalCosto.toFixed(2)}</div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 mb-4">
+                  <div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Hembras</div>
+                    <div className="text-sm font-semibold text-slate-700">{t.hembrasIn}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Machos</div>
+                    <div className="text-sm font-semibold text-slate-700">{t.machosIn}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Costo Unit.</div>
+                    <div className="text-sm font-semibold text-slate-700">S/ {t.costoUnitarioIn?.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Total Aves</div>
+                    <div className="text-sm font-semibold text-slate-700">{(t.hembrasIn || 0) + (t.machosIn || 0)}</div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <button 
+                    onClick={() => setPrintData(t)}
+                    className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-wider"
+                  >
+                    <Printer size={16} />
+                    Reporte
+                  </button>
+                  <div className="flex gap-3">
+                    <button onClick={() => handleEdit(t)} className="p-2 text-blue-500 bg-blue-50 rounded-lg">
+                      <Pencil size={18} />
+                    </button>
+                    <button onClick={() => handleDelete(t.id)} className="p-2 text-red-500 bg-red-50 rounded-lg">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 italic">
+              No hay ingresos registrados.
+            </div>
+          )}
         </div>
       </div>
 

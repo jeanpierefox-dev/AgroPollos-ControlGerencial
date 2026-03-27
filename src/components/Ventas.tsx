@@ -126,41 +126,46 @@ export function Ventas({ store }: { store: any }) {
 
   return (
     <>
-      <div className="p-8 print:hidden">
-        <h2 className="text-2xl font-semibold text-slate-800 mb-6">Boleta de Venta</h2>
+      <div className="p-4 md:p-8 print:hidden">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Boleta de Venta</h2>
+          <p className="text-slate-500 text-sm">Gestión de ventas y emisión de comprobantes</p>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* BOLETA FORM */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+            <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-200">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                <ReceiptText className="text-blue-600" size={24} />
-                <h3 className="text-lg font-medium text-slate-800">Nueva Venta</h3>
+                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                  <ReceiptText size={24} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Nueva Venta</h3>
               </div>
               
               {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 border border-red-100">
-                  {error}
+                <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm mb-6 border border-red-100 flex items-center gap-2">
+                  <span className="font-bold">Error:</span> {error}
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Fecha</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fecha</label>
                   <input
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Campaña</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Campaña</label>
                   <select
                     value={campana}
                     onChange={(e) => { setCampana(e.target.value); setItems([]); }}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50 font-bold text-blue-700"
                   >
                     <option value="">Seleccione Campaña</option>
                     {campanas.map((c: string) => (
@@ -168,35 +173,44 @@ export function Ventas({ store }: { store: any }) {
                     ))}
                   </select>
                 </div>
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Cliente (Opcional)</label>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Cliente (Opcional)</label>
                   <input
                     type="text"
                     value={cliente}
                     onChange={(e) => setCliente(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Nombre del cliente"
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50"
+                    placeholder="Nombre del cliente o Razón Social"
                   />
                 </div>
               </div>
 
               {campana && stock && (
-                <div className="bg-blue-50 p-3 rounded-lg mb-6 flex gap-6 text-sm">
-                  <span className="text-blue-800"><strong>Stock Hembras:</strong> {stock.hembras}</span>
-                  <span className="text-blue-800"><strong>Stock Machos:</strong> {stock.machos}</span>
-                  <span className="text-blue-800"><strong>Costo Unit.:</strong> S/ {stock.costoUnitario.toFixed(2)}</span>
+                <div className="bg-slate-900 text-white p-4 rounded-2xl mb-6 grid grid-cols-3 gap-4 shadow-inner">
+                  <div className="text-center border-r border-slate-700">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Stock Hembras</div>
+                    <div className="text-lg font-bold text-emerald-400">{stock.hembras}</div>
+                  </div>
+                  <div className="text-center border-r border-slate-700">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Stock Machos</div>
+                    <div className="text-lg font-bold text-emerald-400">{stock.machos}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Costo Pollo</div>
+                    <div className="text-lg font-bold text-blue-400">S/ {stock.costoUnitario.toFixed(2)}</div>
+                  </div>
                 </div>
               )}
 
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-                <h4 className="text-sm font-semibold text-slate-800 mb-3">Agregar Ítem</h4>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 items-end">
+              <div className="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-200 mb-6">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Agregar Ítem a Boleta</h4>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
                   <div className="col-span-2 md:col-span-1">
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Tipo</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Tipo</label>
                     <select
                       value={tipo}
                       onChange={(e) => setTipo(e.target.value as TipoPollo)}
-                      className="w-full px-2 py-1.5 border border-slate-300 rounded text-sm"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-semibold bg-white"
                     >
                       <option value="BRASA">Brasa (H)</option>
                       <option value="PRESA">Presa (M)</option>
@@ -205,99 +219,101 @@ export function Ventas({ store }: { store: any }) {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Cantidad</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Cant.</label>
                     <input
                       type="number"
                       min="1"
                       value={cantidad}
                       onChange={(e) => setCantidad(e.target.value)}
-                      className="w-full px-2 py-1.5 border border-slate-300 rounded text-sm"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
                       placeholder="0"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Peso (Kg)</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Peso (Kg)</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       value={pesoTotal}
                       onChange={(e) => setPesoTotal(e.target.value)}
-                      className="w-full px-2 py-1.5 border border-slate-300 rounded text-sm"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
                       placeholder="0.00"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-500 mb-1">Precio x Kg</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">P. x Kg</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       value={precioKilo}
                       onChange={(e) => setPrecioKilo(e.target.value)}
-                      className="w-full px-2 py-1.5 border border-slate-300 rounded text-sm"
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
                       placeholder="0.00"
                     />
                   </div>
-                  <div>
+                  <div className="col-span-2 md:col-span-1">
                     <button
                       type="button"
                       onClick={handleAddItem}
-                      className="w-full bg-slate-800 text-white p-1.5 rounded hover:bg-slate-700 flex justify-center items-center"
+                      className="w-full bg-slate-800 text-white py-2 rounded-lg hover:bg-slate-700 flex justify-center items-center transition-colors shadow-sm"
                     >
-                      <Plus size={18} />
+                      <Plus size={20} />
                     </button>
                   </div>
                 </div>
               </div>
 
               {/* Items Table */}
-              <div className="border border-slate-200 rounded-lg overflow-hidden mb-6">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-100 text-slate-600">
-                    <tr>
-                      <th className="px-4 py-2 font-medium">Tipo</th>
-                      <th className="px-4 py-2 font-medium text-right">Cant.</th>
-                      <th className="px-4 py-2 font-medium text-right">Peso (Kg)</th>
-                      <th className="px-4 py-2 font-medium text-right">Precio/Kg</th>
-                      <th className="px-4 py-2 font-medium text-right">Subtotal</th>
-                      <th className="px-4 py-2"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {items.length > 0 ? items.map(item => (
-                      <tr key={item.id}>
-                        <td className="px-4 py-2">{item.tipo}</td>
-                        <td className="px-4 py-2 text-right">{item.cantidad}</td>
-                        <td className="px-4 py-2 text-right">{item.pesoTotal.toFixed(2)}</td>
-                        <td className="px-4 py-2 text-right">S/ {item.precioKilo.toFixed(2)}</td>
-                        <td className="px-4 py-2 text-right font-medium">S/ {item.subtotal.toFixed(2)}</td>
-                        <td className="px-4 py-2 text-center">
-                          <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700">
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    )) : (
+              <div className="border border-slate-200 rounded-2xl overflow-hidden mb-8">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
                       <tr>
-                        <td colSpan={6} className="px-4 py-6 text-center text-slate-400">Sin ítems en la boleta</td>
+                        <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest">Tipo</th>
+                        <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest text-right">Cant.</th>
+                        <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest text-right">Peso (Kg)</th>
+                        <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest text-right">Precio/Kg</th>
+                        <th className="px-4 py-3 font-bold uppercase text-[10px] tracking-widest text-right">Subtotal</th>
+                        <th className="px-4 py-3"></th>
                       </tr>
-                    )}
-                  </tbody>
-                  <tfoot className="bg-slate-50">
-                    <tr>
-                      <td colSpan={4} className="px-4 py-3 text-right font-bold text-slate-700">TOTAL A PAGAR:</td>
-                      <td className="px-4 py-3 text-right font-bold text-blue-600 text-lg">S/ {totalBoleta.toFixed(2)}</td>
-                      <td></td>
-                    </tr>
-                  </tfoot>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {items.length > 0 ? items.map(item => (
+                        <tr key={item.id} className="hover:bg-slate-50/50">
+                          <td className="px-4 py-3 font-medium text-slate-700">{item.tipo}</td>
+                          <td className="px-4 py-3 text-right font-semibold">{item.cantidad}</td>
+                          <td className="px-4 py-3 text-right">{item.pesoTotal.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-right text-slate-500">S/ {item.precioKilo.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-right font-bold text-slate-900">S/ {item.subtotal.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-center">
+                            <button onClick={() => removeItem(item.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                              <Trash2 size={16} />
+                            </button>
+                          </td>
+                        </tr>
+                      )) : (
+                        <tr>
+                          <td colSpan={6} className="px-4 py-10 text-center text-slate-400 italic">Sin ítems en la boleta</td>
+                        </tr>
+                      )}
+                    </tbody>
+                    <tfoot className="bg-slate-50/80">
+                      <tr>
+                        <td colSpan={4} className="px-4 py-4 text-right font-bold text-slate-500 uppercase tracking-widest text-xs">TOTAL A PAGAR:</td>
+                        <td className="px-4 py-4 text-right font-black text-blue-600 text-xl">S/ {totalBoleta.toFixed(2)}</td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
 
               <button
                 onClick={handleSaveVenta}
                 disabled={items.length === 0}
-                className="w-full bg-blue-600 text-white font-medium py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none uppercase tracking-widest text-sm"
               >
                 Emitir Boleta de Venta
               </button>
@@ -306,44 +322,53 @@ export function Ventas({ store }: { store: any }) {
 
           {/* HISTORIAL */}
           <div className="lg:col-span-5">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-                <h3 className="text-lg font-medium text-slate-800">Últimas Ventas</h3>
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden sticky top-8">
+              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Últimas Ventas</h3>
+                <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase">Recientes</span>
               </div>
-              <div className="overflow-y-auto max-h-[600px] p-4 space-y-4">
+              <div className="overflow-y-auto max-h-[calc(100vh-250px)] p-4 space-y-4">
                 {ventas.length > 0 ? (
                   ventas.map((t: Transaction) => {
                     const totalPollos = t.items?.reduce((acc, i) => acc + i.cantidad, 0) || 0;
                     const totalPeso = t.items?.reduce((acc, i) => acc + i.pesoTotal, 0) || 0;
                     return (
-                      <div key={t.id} className="border border-slate-200 rounded-lg p-4 hover:border-blue-300 transition-colors relative group">
+                      <div key={t.id} className="border border-slate-100 bg-slate-50/30 rounded-2xl p-4 hover:border-blue-200 hover:bg-white transition-all group relative">
                         <button 
                           onClick={() => setPrintData(t)}
-                          className="absolute top-4 right-4 text-slate-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                           title="Imprimir Boleta"
                         >
                           <Printer size={18} />
                         </button>
-                        <div className="flex justify-between items-start mb-2 pr-8">
+                        <div className="flex justify-between items-start mb-3 pr-10">
                           <div>
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{format(new Date(t.date), 'dd MMM yyyy')}</span>
-                            <h4 className="font-medium text-slate-800">{t.cliente || 'Cliente General'}</h4>
-                            <p className="text-xs text-slate-500">{t.campana}</p>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{format(new Date(t.date), 'dd MMM yyyy')}</div>
+                            <h4 className="font-bold text-slate-800 leading-tight">{t.cliente || 'Cliente General'}</h4>
+                            <div className="flex gap-2 mt-1">
+                              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">{t.campana}</span>
+                            </div>
                           </div>
                           <div className="text-right">
-                            <span className="block font-bold text-blue-600">S/ {t.totalVenta.toFixed(2)}</span>
-                            <span className="text-xs text-emerald-600">Ganancia: S/ {t.ganancia.toFixed(2)}</span>
+                            <div className="font-black text-slate-900">S/ {t.totalVenta.toFixed(2)}</div>
+                            <div className="text-[10px] font-bold text-emerald-600 uppercase">G: S/ {t.ganancia.toFixed(2)}</div>
                           </div>
                         </div>
-                        <div className="bg-slate-50 rounded p-2 text-xs text-slate-600 flex justify-between">
-                          <span>{totalPollos} pollos</span>
-                          <span>{totalPeso.toFixed(2)} Kg total</span>
+                        <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-tighter pt-3 border-t border-slate-100">
+                          <div className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                            {totalPollos} pollos
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            {totalPeso.toFixed(2)} Kg total
+                          </div>
                         </div>
                       </div>
                     );
                   })
                 ) : (
-                  <div className="text-center text-slate-400 py-8">
+                  <div className="text-center text-slate-400 py-12 italic">
                     No hay ventas registradas.
                   </div>
                 )}
@@ -355,69 +380,79 @@ export function Ventas({ store }: { store: any }) {
 
       {/* PRINT VIEW */}
       {printData && (
-        <div className="hidden print:block p-8 bg-white text-black min-h-screen">
-          <div className="border-b-2 border-slate-800 pb-4 mb-8 flex justify-between items-end">
+        <div className="hidden print:block p-12 bg-white text-black min-h-screen font-sans">
+          <div className="flex justify-between items-start mb-12 border-b-4 border-slate-900 pb-8">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">AgroPollos</h1>
-              <p className="text-slate-500">Boleta de Venta Electrónica</p>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1 uppercase">AgroPollos</h1>
+              <p className="text-lg font-bold text-slate-600 uppercase tracking-widest">Comprobante de Venta</p>
+              <div className="mt-4 text-sm text-slate-500 font-medium">
+                <p>Granja de Crianza y Venta de Aves</p>
+                <p>Dirección: Sector Las Praderas S/N</p>
+                <p>Tel: 987 654 321</p>
+              </div>
             </div>
-            <div className="text-right text-sm">
-              <p><strong>Fecha de Emisión:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
-              <p><strong>N° Boleta:</strong> {printData.id.split('-')[0].toUpperCase()}</p>
+            <div className="text-right">
+              <div className="border-4 border-slate-900 p-4 inline-block">
+                <p className="text-xs font-black uppercase tracking-widest mb-1">Boleta de Venta</p>
+                <p className="text-2xl font-black">N° {printData.id.split('-')[0].toUpperCase()}</p>
+              </div>
+              <div className="mt-4 text-sm font-bold uppercase tracking-wider">
+                <p><strong>Fecha:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 mb-8">
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Datos del Cliente</h3>
-              <p className="mb-1"><strong>Señor(es):</strong> {printData.cliente || 'Cliente General'}</p>
-              <p><strong>Campaña:</strong> {printData.campana}</p>
+          <div className="mb-12 grid grid-cols-2 gap-12">
+            <div className="border-l-4 border-slate-200 pl-6">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Datos del Adquiriente</h3>
+              <p className="text-xl font-black text-slate-900 mb-1">{printData.cliente || 'CLIENTE GENERAL'}</p>
+              <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Campaña: {printData.campana}</p>
             </div>
           </div>
 
-          <table className="w-full text-left border-collapse mb-8">
+          <table className="w-full text-left border-collapse mb-12">
             <thead>
-              <tr className="bg-slate-100">
-                <th className="border border-slate-300 px-4 py-2">Cant.</th>
-                <th className="border border-slate-300 px-4 py-2">Descripción</th>
-                <th className="border border-slate-300 px-4 py-2 text-right">Peso (Kg)</th>
-                <th className="border border-slate-300 px-4 py-2 text-right">P. Unit.</th>
-                <th className="border border-slate-300 px-4 py-2 text-right">Importe</th>
+              <tr className="bg-slate-900 text-white">
+                <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Cant.</th>
+                <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Descripción del Producto</th>
+                <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso (Kg)</th>
+                <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Precio Unit.</th>
+                <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Importe Total</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y-2 divide-slate-100">
               {printData.items?.map((item, index) => (
-                <tr key={index}>
-                  <td className="border border-slate-300 px-4 py-2 text-center">{item.cantidad}</td>
-                  <td className="border border-slate-300 px-4 py-2">Pollo {item.tipo.replace('_', ' ')}</td>
-                  <td className="border border-slate-300 px-4 py-2 text-right">{item.pesoTotal.toFixed(2)}</td>
-                  <td className="border border-slate-300 px-4 py-2 text-right">S/ {item.precioKilo.toFixed(2)}</td>
-                  <td className="border border-slate-300 px-4 py-2 text-right">S/ {item.subtotal.toFixed(2)}</td>
+                <tr key={index} className="bg-white">
+                  <td className="px-6 py-5 text-center font-bold text-lg">{item.cantidad}</td>
+                  <td className="px-6 py-5 font-bold uppercase text-sm">Pollo {item.tipo.replace('_', ' ')}</td>
+                  <td className="px-6 py-5 text-right font-medium">{item.pesoTotal.toFixed(2)}</td>
+                  <td className="px-6 py-5 text-right font-medium">S/ {item.precioKilo.toFixed(2)}</td>
+                  <td className="px-6 py-5 text-right font-black text-lg">S/ {item.subtotal.toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr>
-                <td colSpan={3} className="border-none"></td>
-                <td className="border border-slate-300 px-4 py-2 text-right font-bold bg-slate-50">TOTAL:</td>
-                <td className="border border-slate-300 px-4 py-2 text-right font-bold bg-slate-50">
-                  S/ {printData.totalVenta.toFixed(2)}
+              <tr className="border-t-4 border-slate-900">
+                <td colSpan={3} className="px-6 py-6"></td>
+                <td className="px-6 py-6 text-right font-black uppercase text-sm tracking-widest bg-slate-50">TOTAL S/:</td>
+                <td className="px-6 py-6 text-right font-black text-3xl bg-slate-50">
+                  {printData.totalVenta.toFixed(2)}
                 </td>
               </tr>
             </tfoot>
           </table>
 
-          <div className="mt-24 flex justify-between px-16">
+          <div className="mt-32 grid grid-cols-2 gap-24 px-12">
             <div className="text-center">
-              <div className="border-t border-slate-400 w-48 mx-auto pt-2">Firma Cliente</div>
+              <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma del Cliente</div>
             </div>
             <div className="text-center">
-              <div className="border-t border-slate-400 w-48 mx-auto pt-2">Firma Vendedor</div>
+              <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Autorizada</div>
             </div>
           </div>
           
-          <div className="mt-12 text-center text-sm text-slate-500">
-            <p>Gracias por su compra.</p>
+          <div className="mt-24 text-center">
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Gracias por su preferencia - AgroPollos</p>
           </div>
         </div>
       )}
