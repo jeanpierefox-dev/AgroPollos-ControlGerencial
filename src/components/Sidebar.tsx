@@ -1,4 +1,5 @@
 import { LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, FileText, BarChart3 } from 'lucide-react';
+import { Logo } from './Logo';
 
 interface SidebarProps {
   currentView: string;
@@ -17,10 +18,8 @@ export function Sidebar({ currentView, setCurrentView }: SidebarProps) {
   return (
     <div className="flex flex-col h-full bg-slate-900 text-slate-300">
       <div className="p-6 border-b border-slate-800 hidden md:block">
-        <h1 className="text-xl font-bold text-white flex items-center gap-2">
-          <span className="bg-emerald-500 text-slate-900 p-1 rounded-md">
-            <ArrowUpFromLine size={20} />
-          </span>
+        <h1 className="text-xl font-bold text-white flex items-center gap-3">
+          <Logo className="w-8 h-8" iconSize={20} />
           AgroPollos
         </h1>
         <p className="text-xs text-slate-500 mt-1">Control Gerencial</p>

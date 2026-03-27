@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Transaction } from '../types';
 import { format } from 'date-fns';
 import { Pencil, Trash2, X, Plus, Printer } from 'lucide-react';
+import { Logo } from './Logo';
 
 export function Ingresos({ store }: { store: any }) {
   const { transactions, addTransaction, updateTransaction, deleteTransaction } = store;
@@ -340,9 +341,12 @@ export function Ingresos({ store }: { store: any }) {
       {printData && (
         <div className="hidden print:block p-8 bg-white text-black min-h-screen">
           <div className="border-b-2 border-slate-800 pb-4 mb-8 flex justify-between items-end">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">AgroPollos</h1>
-              <p className="text-slate-500">Reporte de Ingreso de Crianza</p>
+            <div className="flex items-center gap-4">
+              <Logo className="w-12 h-12" iconSize={32} />
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">AgroPollos</h1>
+                <p className="text-slate-500">Reporte de Ingreso de Crianza</p>
+              </div>
             </div>
             <div className="text-right text-sm">
               <p><strong>Fecha de Emisión:</strong> {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>

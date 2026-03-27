@@ -7,6 +7,7 @@ import { Kardex } from './components/Kardex';
 import { Reportes } from './components/Reportes';
 import { useStore } from './useStore';
 import { Menu, X } from 'lucide-react';
+import { Logo } from './components/Logo';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -36,10 +37,8 @@ export default function App() {
     <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 font-sans text-slate-900 print:block print:bg-white">
       {/* Mobile Header */}
       <div className="md:hidden bg-slate-900 text-white p-4 flex justify-between items-center sticky top-0 z-50 print:hidden">
-        <h1 className="text-lg font-bold flex items-center gap-2">
-          <span className="bg-emerald-500 text-slate-900 p-1 rounded-md">
-            AP
-          </span>
+        <h1 className="text-lg font-bold flex items-center gap-3">
+          <Logo className="w-7 h-7" iconSize={18} />
           AgroPollos
         </h1>
         <button onClick={toggleSidebar} className="p-2 text-slate-300 hover:text-white">

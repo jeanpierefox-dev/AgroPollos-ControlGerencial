@@ -2,6 +2,7 @@ import React from 'react';
 import { Transaction } from '../types';
 import { format } from 'date-fns';
 import { FileText, Printer, Download, TrendingUp, TrendingDown, Package } from 'lucide-react';
+import { Logo } from './Logo';
 
 export function Kardex({ store }: { store: any }) {
   const { transactions } = store;
@@ -68,9 +69,12 @@ export function Kardex({ store }: { store: any }) {
       {/* Print Header */}
       <div className="hidden print:block mb-8 border-b-2 border-slate-900 pb-4">
         <div className="flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">AGROPOLLOS</h1>
-            <p className="text-slate-600">REPORTE DE KARDEX GENERAL</p>
+          <div className="flex items-center gap-4">
+            <Logo className="w-12 h-12" iconSize={32} />
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">AGROPOLLOS</h1>
+              <p className="text-slate-600">REPORTE DE KARDEX GENERAL</p>
+            </div>
           </div>
           <div className="text-right text-sm text-slate-500">
             <p>Fecha de Reporte: {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>

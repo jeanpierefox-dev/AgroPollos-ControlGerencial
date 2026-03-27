@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Transaction, SaleItem, TipoPollo } from '../types';
 import { format } from 'date-fns';
 import { Plus, Trash2, ReceiptText, Printer } from 'lucide-react';
+import { Logo } from './Logo';
 
 export function Ventas({ store }: { store: any }) {
   const { transactions, addTransaction, getCampanas, getStockByCampana } = store;
@@ -382,13 +383,16 @@ export function Ventas({ store }: { store: any }) {
       {printData && (
         <div className="hidden print:block p-12 bg-white text-black min-h-screen font-sans">
           <div className="flex justify-between items-start mb-12 border-b-4 border-slate-900 pb-8">
-            <div>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1 uppercase">AgroPollos</h1>
-              <p className="text-lg font-bold text-slate-600 uppercase tracking-widest">Comprobante de Venta</p>
-              <div className="mt-4 text-sm text-slate-500 font-medium">
-                <p>Granja de Crianza y Venta de Aves</p>
-                <p>Dirección: Sector Las Praderas S/N</p>
-                <p>Tel: 987 654 321</p>
+            <div className="flex items-center gap-4">
+              <Logo className="w-16 h-16" iconSize={40} />
+              <div>
+                <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1 uppercase">AgroPollos</h1>
+                <p className="text-lg font-bold text-slate-600 uppercase tracking-widest">Comprobante de Venta</p>
+                <div className="mt-4 text-sm text-slate-500 font-medium">
+                  <p>Granja de Crianza y Venta de Aves</p>
+                  <p>Dirección: Sector Las Praderas S/N</p>
+                  <p>Tel: 987 654 321</p>
+                </div>
               </div>
             </div>
             <div className="text-right">

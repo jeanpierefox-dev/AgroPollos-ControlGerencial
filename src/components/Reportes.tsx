@@ -3,6 +3,7 @@ import { Transaction } from '../types';
 import { format, isWithinInterval, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Printer, Calendar, TrendingUp, DollarSign, PieChart as PieChartIcon } from 'lucide-react';
+import { Logo } from './Logo';
 
 export function Reportes({ store }: { store: any }) {
   const { transactions } = store;
@@ -134,9 +135,12 @@ export function Reportes({ store }: { store: any }) {
       {/* Print Header */}
       <div className="hidden print:block mb-10 border-b-2 border-slate-900 pb-6">
         <div className="flex justify-between items-end">
-          <div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tighter">AGROPOLLOS</h1>
-            <p className="text-slate-600 font-medium uppercase tracking-widest text-xs mt-1">Reporte de Desempeño Financiero</p>
+          <div className="flex items-center gap-4">
+            <Logo className="w-12 h-12" iconSize={32} />
+            <div>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tighter">AGROPOLLOS</h1>
+              <p className="text-slate-600 font-medium uppercase tracking-widest text-xs mt-1">Reporte de Desempeño Financiero</p>
+            </div>
           </div>
           <div className="text-right text-sm text-slate-500">
             <p className="font-bold text-slate-900">Periodo: {format(parseISO(startDate), 'dd/MM/yyyy')} - {format(parseISO(endDate), 'dd/MM/yyyy')}</p>

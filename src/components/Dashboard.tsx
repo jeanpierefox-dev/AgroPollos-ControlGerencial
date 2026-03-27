@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Printer } from 'lucide-react';
+import { Logo } from './Logo';
 
 export function Dashboard({ store }: { store: any }) {
   const { transactions, getGlobalStock, getCampanas, getCampanaInfo } = store;
@@ -59,7 +60,15 @@ export function Dashboard({ store }: { store: any }) {
 
   return (
     <div className="p-4 md:p-8 bg-[#f8fafc] min-h-full font-sans print:bg-white print:p-0">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-slate-200 pb-6 print:mb-12">
+      <div className="hidden print:flex items-center gap-4 mb-8 border-b-2 border-slate-900 pb-4">
+        <Logo className="w-12 h-12" iconSize={32} />
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">AGROPOLLOS</h1>
+          <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Resumen Gerencial</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-slate-200 pb-6 print:hidden">
         <div>
           <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Resumen Gerencial</h2>
           <p className="text-slate-500 mt-1 text-xs font-bold uppercase tracking-[0.2em]">Indicadores de Rendimiento y Salud Financiera</p>
