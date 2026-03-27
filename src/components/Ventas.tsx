@@ -23,6 +23,7 @@ export function Ventas({ store }: { store: any }) {
   const [precioKilo, setPrecioKilo] = useState('');
   const [itemJabas, setItemJabas] = useState('');
   const [itemPollosPorJaba, setItemPollosPorJaba] = useState('');
+  const [costoUnitarioVenta, setCostoUnitarioVenta] = useState('');
   
   const [error, setError] = useState('');
   
@@ -43,6 +44,15 @@ export function Ventas({ store }: { store: any }) {
   const campanas = getCampanas();
   const stock = campana ? getStockByCampana(campana, isEditing || undefined) : null;
   const printCampanaInfo = printData ? getCampanaInfo(printData.campana || '') : null;
+
+  useEffect(() => {
+    if (campana && !isEditing) {
+      const currentStock = getStockByCampana(campana);
+      if (currentStock) {
+        setCostoUnitarioVenta(currentStock.costoUnitario.toFixed(2));
+      }
+    }
+  }, [campana, isEditing, getStockByCampana]);
 
   const handleAddItem = () => {
     if (!campana) {
@@ -109,7 +119,7 @@ export function Ventas({ store }: { store: any }) {
 
     const totalVenta = items.reduce((acc, item) => acc + item.subtotal, 0);
     const totalPollos = items.reduce((acc, item) => acc + item.cantidad, 0);
-    const costoUnitario = stock!.costoUnitario;
+    const costoUnitario = parseFloat(costoUnitarioVenta) || (stock ? stock.costoUnitario : 0);
     const totalCosto = totalPollos * costoUnitario;
     const ganancia = totalVenta - totalCosto;
 
@@ -137,6 +147,7 @@ export function Ventas({ store }: { store: any }) {
     // Reset
     setItems([]);
     setCliente('');
+    setCostoUnitarioVenta('');
     setError('');
   };
 
@@ -146,6 +157,8 @@ export function Ventas({ store }: { store: any }) {
     setCampana(t.campana || '');
     setCliente(t.cliente || '');
     setItems(t.items || []);
+    const totalPollos = t.items?.reduce((acc, i) => acc + i.cantidad, 0) || 1;
+    setCostoUnitarioVenta((t.totalCosto / totalPollos).toFixed(2));
     setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -232,6 +245,20 @@ export function Ventas({ store }: { store: any }) {
                     placeholder="Nombre del cliente o Razón Social"
                   />
                 </div>
+                {campana && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Precio Costo (S/)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={costoUnitarioVenta}
+                      onChange={(e) => setCostoUnitarioVenta(e.target.value)}
+                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50 font-bold text-emerald-600"
+                      placeholder="0.00"
+                    />
+                  </div>
+                )}
               </div>
 
               {campana && stock && (
@@ -245,7 +272,7 @@ export function Ventas({ store }: { store: any }) {
                     <div className="text-lg font-bold text-emerald-400">{stock.machos}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Costo Pollo</div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Costo Promedio</div>
                     <div className="text-lg font-bold text-blue-400">S/ {stock.costoUnitario.toFixed(2)}</div>
                   </div>
                 </div>
@@ -528,241 +555,303 @@ export function Ventas({ store }: { store: any }) {
         <div className="hidden print:block bg-white text-black font-sans">
           
           {/* 1. ORDEN DE DESPACHO */}
-          <div className="p-12 min-h-screen relative" style={{ pageBreakAfter: 'always' }}>
-            <div className="flex justify-between items-start mb-8 border-b-4 border-slate-900 pb-6">
-              <div className="flex items-center gap-4">
-                {appConfig.logo ? (
-                  <img src={appConfig.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />
-                ) : (
-                  <Logo className="w-16 h-16" iconSize={40} />
-                )}
-                <div>
-                  <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1 uppercase">{appConfig.appName}</h1>
-                  <p className="text-lg font-bold text-slate-600 uppercase tracking-widest">Orden de Despacho</p>
+          <div className="p-8 min-h-screen relative" style={{ pageBreakAfter: 'always' }}>
+            <div className="border-2 border-slate-800 rounded-xl overflow-hidden">
+              <div className="flex justify-between items-center p-6 border-b-2 border-slate-800 bg-slate-50">
+                <div className="flex items-center gap-4">
+                  {appConfig.logo ? (
+                    <img src={appConfig.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />
+                  ) : (
+                    <Logo className="w-16 h-16" iconSize={40} />
+                  )}
+                  <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{appConfig.appName}</h1>
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Orden de Despacho</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="border-2 border-slate-800 p-3 rounded-lg bg-white inline-block text-center min-w-[150px]">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">N° Orden</p>
+                    <p className="text-xl font-black text-slate-900">{printData.id.split('-')[0].toUpperCase()}</p>
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="border-4 border-slate-900 p-4 inline-block">
-                  <p className="text-xs font-black uppercase tracking-widest mb-1">N° Orden</p>
-                  <p className="text-2xl font-black">{printData.id.split('-')[0].toUpperCase()}</p>
+
+              <div className="grid grid-cols-2 gap-0 border-b-2 border-slate-800">
+                <div className="p-6 border-r-2 border-slate-800">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Datos de Origen</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Plantel:</span>
+                      <span className="text-sm font-black text-slate-900">{printCampanaInfo?.plantel || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Galpón:</span>
+                      <span className="text-sm font-black text-slate-900">{printCampanaInfo?.galpon || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Campaña:</span>
+                      <span className="text-sm font-black text-slate-900">{printData.campana}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Fecha:</span>
+                      <span className="text-sm font-black text-slate-900">{format(new Date(printData.date), 'dd/MM/yyyy')}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 text-sm font-bold uppercase tracking-wider">
-                  <p><strong>Fecha:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
+                <div className="p-6">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Datos de Destino</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Cliente:</span>
+                      <span className="text-sm font-black text-slate-900">{printData.cliente || 'CLIENTE GENERAL'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Total Jabas:</span>
+                      <span className="text-sm font-black text-slate-900">{printData.items?.reduce((acc, item) => acc + (item.jabas || 0), 0) || 0}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 border-b-2 border-slate-800">
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Cant.</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Tipo de Pollo</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Sexo</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Jabas</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">P/Jaba</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Peso Prom. (Kg)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {printData.items?.map((item, index) => {
+                    const sexo = (item.tipo === 'BRASA' || item.tipo === 'TIPO_HEMBRA') ? 'Hembra' : 'Macho';
+                    const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
+                    return (
+                      <tr key={index} className="bg-white">
+                        <td className="px-6 py-4 text-center font-bold text-sm">{item.cantidad}</td>
+                        <td className="px-6 py-4 font-bold uppercase text-xs">{item.tipo.replace('_', ' ')}</td>
+                        <td className="px-6 py-4 font-bold uppercase text-xs">{sexo}</td>
+                        <td className="px-6 py-4 text-right font-bold text-sm">{item.jabas || 0}</td>
+                        <td className="px-6 py-4 text-right font-bold text-sm">{item.pollosPorJaba || 0}</td>
+                        <td className="px-6 py-4 text-right font-black text-sm">{pesoPromedio}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
 
-            <div className="mb-8 grid grid-cols-2 gap-8">
-              <div className="border-l-4 border-slate-200 pl-6">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Datos de Origen</h3>
-                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Plantel: <span className="text-slate-900 font-black">{printCampanaInfo?.plantel || '-'}</span></p>
-                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Galpón: <span className="text-slate-900 font-black">{printCampanaInfo?.galpon || '-'}</span></p>
-                <p className="text-sm font-bold text-slate-700 uppercase">Campaña: <span className="text-slate-900 font-black">{printData.campana}</span></p>
-              </div>
-              <div className="border-l-4 border-slate-200 pl-6">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Datos de Despacho</h3>
-                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Cliente: <span className="text-slate-900 font-black">{printData.cliente || 'CLIENTE GENERAL'}</span></p>
-                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Total Jabas: <span className="text-slate-900 font-black">{printData.items?.reduce((acc, item) => acc + (item.jabas || 0), 0) || 0}</span></p>
-              </div>
-            </div>
-
-            <table className="w-full text-left border-collapse mb-12">
-              <thead>
-                <tr className="bg-slate-900 text-white">
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Cant.</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Tipo de Pollo</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Sexo</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Jabas</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">P/Jaba</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso Promedio (Kg)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y-2 divide-slate-100">
-                {printData.items?.map((item, index) => {
-                  const sexo = (item.tipo === 'BRASA' || item.tipo === 'TIPO_HEMBRA') ? 'Hembra' : 'Macho';
-                  const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
-                  return (
-                    <tr key={index} className="bg-white">
-                      <td className="px-6 py-5 text-center font-bold text-lg">{item.cantidad}</td>
-                      <td className="px-6 py-5 font-bold uppercase text-sm">{item.tipo.replace('_', ' ')}</td>
-                      <td className="px-6 py-5 font-bold uppercase text-sm">{sexo}</td>
-                      <td className="px-6 py-5 text-right font-bold text-lg">{item.jabas || 0}</td>
-                      <td className="px-6 py-5 text-right font-bold text-lg">{item.pollosPorJaba || 0}</td>
-                      <td className="px-6 py-5 text-right font-black text-lg">{pesoPromedio}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            <div className="mt-32 grid grid-cols-2 gap-24 px-12">
+            <div className="mt-24 grid grid-cols-2 gap-16 px-16">
               <div className="text-center">
-                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Despachador</div>
+                <div className="border-t border-slate-400 pt-2 font-bold uppercase text-[10px] tracking-widest text-slate-500">Firma Despachador</div>
               </div>
               <div className="text-center">
-                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Transportista</div>
+                <div className="border-t border-slate-400 pt-2 font-bold uppercase text-[10px] tracking-widest text-slate-500">Firma Transportista</div>
               </div>
             </div>
           </div>
 
           {/* 2. GUÍA DE REMISIÓN */}
-          <div className="p-12 min-h-screen relative" style={{ pageBreakAfter: 'always' }}>
-            <div className="flex justify-between items-start mb-8 border-b-4 border-slate-900 pb-6">
-              <div className="flex items-center gap-4">
-                {appConfig.logo ? (
-                  <img src={appConfig.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />
-                ) : (
-                  <Logo className="w-16 h-16" iconSize={40} />
-                )}
-                <div>
-                  <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1 uppercase">{appConfig.appName}</h1>
-                  <p className="text-lg font-bold text-slate-600 uppercase tracking-widest">Guía de Remisión Remitente</p>
+          <div className="p-8 min-h-screen relative" style={{ pageBreakAfter: 'always' }}>
+            <div className="border-2 border-slate-800 rounded-xl overflow-hidden">
+              <div className="flex justify-between items-center p-6 border-b-2 border-slate-800 bg-slate-50">
+                <div className="flex items-center gap-4">
+                  {appConfig.logo ? (
+                    <img src={appConfig.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />
+                  ) : (
+                    <Logo className="w-16 h-16" iconSize={40} />
+                  )}
+                  <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{appConfig.appName}</h1>
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Guía de Remisión Remitente</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="border-2 border-slate-800 p-3 rounded-lg bg-white inline-block text-center min-w-[150px]">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Guía N°</p>
+                    <p className="text-xl font-black text-slate-900">T001-{printData.id.split('-')[0].toUpperCase()}</p>
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="border-4 border-slate-900 p-4 inline-block">
-                  <p className="text-xs font-black uppercase tracking-widest mb-1">Guía N°</p>
-                  <p className="text-2xl font-black">T001-{printData.id.split('-')[0].toUpperCase()}</p>
+
+              <div className="grid grid-cols-2 gap-0 border-b-2 border-slate-800">
+                <div className="p-6 border-r-2 border-slate-800">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Punto de Partida</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Origen:</span>
+                      <span className="text-sm font-black text-slate-900">Granja {appConfig.appName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Plantel:</span>
+                      <span className="text-sm font-black text-slate-900">{printCampanaInfo?.plantel || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Galpón:</span>
+                      <span className="text-sm font-black text-slate-900">{printCampanaInfo?.galpon || '-'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Fecha Traslado:</span>
+                      <span className="text-sm font-black text-slate-900">{format(new Date(printData.date), 'dd/MM/yyyy')}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 text-sm font-bold uppercase tracking-wider">
-                  <p><strong>Fecha de Traslado:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
+                <div className="p-6">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Punto de Llegada</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Destinatario:</span>
+                      <span className="text-sm font-black text-slate-900">{printData.cliente || 'CLIENTE GENERAL'}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 border-b-2 border-slate-800">
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Cant.</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Descripción</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Peso Total (Kg)</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Peso Prom. (Kg)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {printData.items?.map((item, index) => {
+                    const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
+                    return (
+                      <tr key={index} className="bg-white">
+                        <td className="px-6 py-4 text-center font-bold text-sm">{item.cantidad}</td>
+                        <td className="px-6 py-4 font-bold uppercase text-xs">Pollo Vivo - {item.tipo.replace('_', ' ')}</td>
+                        <td className="px-6 py-4 text-right font-bold text-sm">{item.pesoTotal.toFixed(2)}</td>
+                        <td className="px-6 py-4 text-right font-black text-sm">{pesoPromedio}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-slate-50 border-t-2 border-slate-800">
+                    <td colSpan={2} className="px-6 py-4 text-right font-black uppercase text-xs tracking-widest">Peso Bruto Total:</td>
+                    <td className="px-6 py-4 text-right font-black text-lg">{printData.items?.reduce((acc, item) => acc + item.pesoTotal, 0).toFixed(2)} Kg</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
 
-            <div className="mb-8 grid grid-cols-2 gap-8">
-              <div className="border-l-4 border-slate-200 pl-6">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Punto de Partida</h3>
-                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Granja {appConfig.appName}</p>
-                <p className="text-sm font-bold text-slate-700 uppercase mb-1">Plantel: {printCampanaInfo?.plantel || '-'}</p>
-                <p className="text-sm font-bold text-slate-700 uppercase">Galpón: {printCampanaInfo?.galpon || '-'}</p>
-              </div>
-              <div className="border-l-4 border-slate-200 pl-6">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Punto de Llegada / Destinatario</h3>
-                <p className="text-xl font-black text-slate-900 mb-1">{printData.cliente || 'CLIENTE GENERAL'}</p>
-              </div>
-            </div>
-
-            <table className="w-full text-left border-collapse mb-12">
-              <thead>
-                <tr className="bg-slate-900 text-white">
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Cant.</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Descripción</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso Total (Kg)</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso Promedio (Kg)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y-2 divide-slate-100">
-                {printData.items?.map((item, index) => {
-                  const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
-                  return (
-                    <tr key={index} className="bg-white">
-                      <td className="px-6 py-5 text-center font-bold text-lg">{item.cantidad}</td>
-                      <td className="px-6 py-5 font-bold uppercase text-sm">Pollo Vivo - {item.tipo.replace('_', ' ')}</td>
-                      <td className="px-6 py-5 text-right font-medium">{item.pesoTotal.toFixed(2)}</td>
-                      <td className="px-6 py-5 text-right font-black text-lg">{pesoPromedio}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            <div className="mt-32 grid grid-cols-2 gap-24 px-12">
+            <div className="mt-24 grid grid-cols-2 gap-16 px-16">
               <div className="text-center">
-                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Remitente</div>
+                <div className="border-t border-slate-400 pt-2 font-bold uppercase text-[10px] tracking-widest text-slate-500">Firma Remitente</div>
               </div>
               <div className="text-center">
-                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Destinatario</div>
+                <div className="border-t border-slate-400 pt-2 font-bold uppercase text-[10px] tracking-widest text-slate-500">Firma Destinatario</div>
               </div>
             </div>
           </div>
 
           {/* 3. BOLETA DE VENTA */}
-          <div className="p-12 min-h-screen relative">
-            <div className="flex justify-between items-start mb-12 border-b-4 border-slate-900 pb-8">
-              <div className="flex items-center gap-4">
-                {appConfig.logo ? (
-                  <img src={appConfig.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />
-                ) : (
-                  <Logo className="w-16 h-16" iconSize={40} />
-                )}
-                <div>
-                  <h1 className="text-4xl font-black text-slate-900 tracking-tighter mb-1 uppercase">{appConfig.appName}</h1>
-                  <p className="text-lg font-bold text-slate-600 uppercase tracking-widest">Comprobante de Venta</p>
-                  <div className="mt-4 text-sm text-slate-500 font-medium">
-                    <p>Granja de Crianza y Venta de Aves</p>
-                    <p>Dirección: Sector Las Praderas S/N</p>
-                    <p>Tel: 987 654 321</p>
+          <div className="p-8 min-h-screen relative">
+            <div className="border-2 border-slate-800 rounded-xl overflow-hidden">
+              <div className="flex justify-between items-center p-6 border-b-2 border-slate-800 bg-slate-50">
+                <div className="flex items-center gap-4">
+                  {appConfig.logo ? (
+                    <img src={appConfig.logo} alt="Logo" className="w-16 h-16 object-contain rounded" />
+                  ) : (
+                    <Logo className="w-16 h-16" iconSize={40} />
+                  )}
+                  <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{appConfig.appName}</h1>
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Comprobante de Venta</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="border-2 border-slate-800 p-3 rounded-lg bg-white inline-block text-center min-w-[150px]">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Boleta N°</p>
+                    <p className="text-xl font-black text-slate-900">B001-{printData.id.split('-')[0].toUpperCase()}</p>
                   </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="border-4 border-slate-900 p-4 inline-block">
-                  <p className="text-xs font-black uppercase tracking-widest mb-1">Boleta de Venta</p>
-                  <p className="text-2xl font-black">B001-{printData.id.split('-')[0].toUpperCase()}</p>
+
+              <div className="grid grid-cols-2 gap-0 border-b-2 border-slate-800">
+                <div className="p-6 border-r-2 border-slate-800">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Datos del Emisor</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Empresa:</span>
+                      <span className="text-sm font-black text-slate-900">Granja {appConfig.appName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Dirección:</span>
+                      <span className="text-sm font-black text-slate-900">Sector Las Praderas S/N</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Teléfono:</span>
+                      <span className="text-sm font-black text-slate-900">987 654 321</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 text-sm font-bold uppercase tracking-wider">
-                  <p><strong>Fecha:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
+                <div className="p-6">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Datos del Adquiriente</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Cliente:</span>
+                      <span className="text-sm font-black text-slate-900">{printData.cliente || 'CLIENTE GENERAL'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Campaña:</span>
+                      <span className="text-sm font-black text-slate-900">{printData.campana}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Fecha:</span>
+                      <span className="text-sm font-black text-slate-900">{format(new Date(printData.date), 'dd/MM/yyyy')}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="mb-12 grid grid-cols-2 gap-12">
-              <div className="border-l-4 border-slate-200 pl-6">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Datos del Adquiriente</h3>
-                <p className="text-xl font-black text-slate-900 mb-1">{printData.cliente || 'CLIENTE GENERAL'}</p>
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Campaña: {printData.campana}</p>
-              </div>
-            </div>
-
-            <table className="w-full text-left border-collapse mb-12">
-              <thead>
-                <tr className="bg-slate-900 text-white">
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Cant.</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest">Descripción del Producto</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso Prom.</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Peso Total</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Precio Unit.</th>
-                  <th className="px-6 py-4 font-black uppercase text-xs tracking-widest text-right">Importe Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y-2 divide-slate-100">
-                {printData.items?.map((item, index) => {
-                  const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
-                  return (
-                    <tr key={index} className="bg-white">
-                      <td className="px-6 py-5 text-center font-bold text-lg">{item.cantidad}</td>
-                      <td className="px-6 py-5 font-bold uppercase text-sm">Pollo {item.tipo.replace('_', ' ')}</td>
-                      <td className="px-6 py-5 text-right font-medium">{pesoPromedio} Kg</td>
-                      <td className="px-6 py-5 text-right font-medium">{item.pesoTotal.toFixed(2)} Kg</td>
-                      <td className="px-6 py-5 text-right font-medium">S/ {item.precioKilo.toFixed(2)}</td>
-                      <td className="px-6 py-5 text-right font-black text-lg">S/ {item.subtotal.toFixed(2)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-4 border-slate-900">
-                  <td colSpan={4} className="px-6 py-6"></td>
-                  <td className="px-6 py-6 text-right font-black uppercase text-sm tracking-widest bg-slate-50">TOTAL S/:</td>
-                  <td className="px-6 py-6 text-right font-black text-3xl bg-slate-50">
-                    {printData.totalVenta.toFixed(2)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-
-            <div className="mt-32 grid grid-cols-2 gap-24 px-12">
-              <div className="text-center">
-                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma del Cliente</div>
-              </div>
-              <div className="text-center">
-                <div className="border-t-2 border-slate-900 pt-4 font-black uppercase text-xs tracking-widest">Firma Autorizada</div>
-              </div>
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 border-b-2 border-slate-800">
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Cant.</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Descripción</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Peso Prom.</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Peso Total</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Precio Unit.</th>
+                    <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Importe Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {printData.items?.map((item, index) => {
+                    const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
+                    return (
+                      <tr key={index} className="bg-white">
+                        <td className="px-6 py-4 text-center font-bold text-sm">{item.cantidad}</td>
+                        <td className="px-6 py-4 font-bold uppercase text-xs">Pollo {item.tipo.replace('_', ' ')}</td>
+                        <td className="px-6 py-4 text-right font-medium text-sm">{pesoPromedio} Kg</td>
+                        <td className="px-6 py-4 text-right font-medium text-sm">{item.pesoTotal.toFixed(2)} Kg</td>
+                        <td className="px-6 py-4 text-right font-medium text-sm">S/ {item.precioKilo.toFixed(2)}</td>
+                        <td className="px-6 py-4 text-right font-black text-sm">S/ {item.subtotal.toFixed(2)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-slate-50 border-t-2 border-slate-800">
+                    <td colSpan={4} className="px-6 py-4"></td>
+                    <td className="px-6 py-4 text-right font-black uppercase text-xs tracking-widest">Total a Pagar:</td>
+                    <td className="px-6 py-4 text-right font-black text-2xl">
+                      S/ {printData.totalVenta.toFixed(2)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
             
-            <div className="mt-24 text-center">
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Gracias por su preferencia - {appConfig.appName}</p>
+            <div className="mt-12 text-center">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Gracias por su preferencia - {appConfig.appName}</p>
             </div>
           </div>
         </div>
