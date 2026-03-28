@@ -198,10 +198,12 @@ export function Reportes({ store }: { store: any }) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={campaignStats}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="label" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => `S/${value}`} />
+                <XAxis dataKey="label" fontSize={10} tickLine={false} axisLine={false} tick={{ fill: '#94a3b8' }} />
+                <YAxis fontSize={10} tickLine={false} axisLine={false} tickFormatter={(value) => `S/${value}`} tick={{ fill: '#94a3b8' }} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  cursor={{ fill: '#f1f5f9' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', color: '#0f172a' }}
+                  itemStyle={{ color: '#0f172a' }}
                   formatter={(value: any) => [`S/ ${value.toLocaleString()}`, 'Utilidad']}
                 />
                 <Bar dataKey="utilidad" fill="#10b981" radius={[4, 4, 0, 0]} barSize={40} />
@@ -226,13 +228,17 @@ export function Reportes({ store }: { store: any }) {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
+                  stroke="none"
                 >
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend verticalAlign="bottom" height={36} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', color: '#0f172a' }}
+                  itemStyle={{ color: '#0f172a' }}
+                />
+                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: '#64748b' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
