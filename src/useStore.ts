@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Transaction, AppConfig } from './types';
+import { Transaction, AppConfig, User } from './types';
 
 const defaultAppConfig: AppConfig = {
   appName: 'AgroPollos',
   logo: null,
+};
+
+const defaultAdmin: User = {
+  id: 'admin-1',
+  username: 'admin',
+  passwordHash: '1234', // In a real app, this should be hashed
+  role: 'admin',
+  name: 'Administrador'
 };
 
 export function useStore() {
@@ -15,6 +23,25 @@ export function useStore() {
   const [appConfig, setAppConfig] = useState<AppConfig>(() => {
     const saved = localStorage.getItem('pollos_app_config');
     return saved ? JSON.parse(saved) : defaultAppConfig;
+  });
+
+  const [users, setUsers] = useState<User[]>(() => {
+    const saved = localStorage.getItem('pollos_users');
+    if (saved) {
+      const parsedUsers = JSON.parse(saved);
+      // Ensure admin has the correct password if it was previously set to admin123
+      return parsedUsers.map((u: User) => 
+        (u.username === 'admin' && u.passwordHash === 'admin123') 
+          ? { ...u, passwordHash: '1234' } 
+          : u
+      );
+    }
+    return [defaultAdmin];
+  });
+
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('pollos_current_user');
+    return saved ? JSON.parse(saved) : null;
   });
 
   useEffect(() => {
@@ -34,6 +61,43 @@ export function useStore() {
       link.href = appConfig.logo;
     }
   }, [appConfig]);
+
+  useEffect(() => {
+    localStorage.setItem('pollos_users', JSON.stringify(users));
+  }, [users]);
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('pollos_current_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('pollos_current_user');
+    }
+  }, [currentUser]);
+
+  const login = (username: string, passwordHash: string) => {
+    const user = users.find(u => u.username === username && u.passwordHash === passwordHash);
+    if (user) {
+      setCurrentUser(user);
+      return true;
+    }
+    return false;
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+  };
+
+  const addUser = (user: User) => {
+    setUsers(prev => [...prev, user]);
+  };
+
+  const updateUser = (id: string, updated: User) => {
+    setUsers(prev => prev.map(u => u.id === id ? updated : u));
+  };
+
+  const deleteUser = (id: string) => {
+    setUsers(prev => prev.filter(u => u.id !== id));
+  };
 
   const updateAppConfig = (config: Partial<AppConfig>) => {
     setAppConfig(prev => ({ ...prev, ...config }));
@@ -63,8 +127,8 @@ export function useStore() {
 
     transactions.filter(t => t.campana === campana && t.id !== excludeTransactionId).forEach(t => {
       if (t.type === 'INGRESO') {
-        hembras += t.hembrasIn || 0;
-        machos += t.machosIn || 0;
+        hembras += (t.hembrasIn || 0) - (t.muertesHembras || 0);
+        machos += (t.machosIn || 0) - (t.muertesMachos || 0);
         costoUnitario = t.costoUnitarioIn || 0;
       } else if (t.type === 'VENTA' && t.items) {
         t.items.forEach(item => {
@@ -98,8 +162,8 @@ export function useStore() {
     let machos = 0;
     transactions.forEach(t => {
       if (t.type === 'INGRESO') {
-        hembras += t.hembrasIn || 0;
-        machos += t.machosIn || 0;
+        hembras += (t.hembrasIn || 0) - (t.muertesHembras || 0);
+        machos += (t.machosIn || 0) - (t.muertesMachos || 0);
       } else if (t.type === 'VENTA' && t.items) {
         t.items.forEach(item => {
           if (item.tipo === 'BRASA' || item.tipo === 'TIPO_HEMBRA') hembras -= item.cantidad;
@@ -110,5 +174,24 @@ export function useStore() {
     return { hembras, machos };
   };
 
-  return { transactions, appConfig, updateAppConfig, addTransaction, updateTransaction, deleteTransaction, resetStore, getStockByCampana, getCampanas, getCampanaInfo, getGlobalStock };
+  return { 
+    transactions, 
+    appConfig, 
+    users,
+    currentUser,
+    login,
+    logout,
+    addUser,
+    updateUser,
+    deleteUser,
+    updateAppConfig, 
+    addTransaction, 
+    updateTransaction, 
+    deleteTransaction, 
+    resetStore, 
+    getStockByCampana, 
+    getCampanas, 
+    getCampanaInfo, 
+    getGlobalStock 
+  };
 }

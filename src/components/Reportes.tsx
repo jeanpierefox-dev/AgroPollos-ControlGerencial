@@ -212,7 +212,7 @@ export function Reportes({ store }: { store: any }) {
 
         <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-            <PieChartIcon className="text-blue-500" size={20} />
+            <PieChartIcon className="text-emerald-500" size={20} />
             Distribución de Ventas por Tipo
           </h3>
           <div className="h-[300px] flex flex-col md:flex-row items-center">
@@ -276,7 +276,7 @@ export function Reportes({ store }: { store: any }) {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-bold text-[11px]">
+                    <span className="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-md font-bold text-[11px]">
                       {s.margin.toFixed(1)}%
                     </span>
                   </td>

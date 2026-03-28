@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, SaleItem, TipoPollo } from '../types';
 import { format } from 'date-fns';
-import { Plus, Trash2, ReceiptText, Printer, Pencil } from 'lucide-react';
+import { Plus, Trash2, ReceiptText, Printer, Pencil, Download } from 'lucide-react';
 import { Logo } from './Logo';
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 
 export function Ventas({ store }: { store: any }) {
   const { transactions, appConfig, addTransaction, updateTransaction, deleteTransaction, getCampanas, getStockByCampana, getCampanaInfo } = store;
@@ -28,18 +30,51 @@ export function Ventas({ store }: { store: any }) {
   const [error, setError] = useState('');
   
   const [printData, setPrintData] = useState<Transaction | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleNumberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   useEffect(() => {
-    if (printData) {
+    if (printData && !isDownloading) {
       window.print();
     }
-  }, [printData]);
+  }, [printData, isDownloading]);
 
   useEffect(() => {
     const handleAfterPrint = () => setPrintData(null);
     window.addEventListener('afterprint', handleAfterPrint);
     return () => window.removeEventListener('afterprint', handleAfterPrint);
   }, []);
+
+  const handleDownloadPDF = (t: Transaction) => {
+    setPrintData(t);
+    setIsDownloading(true);
+    
+    setTimeout(() => {
+      const element = document.getElementById('print-container');
+      if (element) {
+        const opt = {
+          margin:       0.5,
+          filename:     `Documentos-Venta-${t.id.split('-')[0].toUpperCase()}.pdf`,
+          image:        { type: 'jpeg' as const, quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' as const }
+        };
+        
+        html2pdf().set(opt).from(element).save().then(() => {
+          setPrintData(null);
+          setIsDownloading(false);
+        });
+      } else {
+        setPrintData(null);
+        setIsDownloading(false);
+      }
+    }, 500);
+  };
 
   const campanas = getCampanas();
   const stock = campana ? getStockByCampana(campana, isEditing || undefined) : null;
@@ -198,7 +233,7 @@ export function Ventas({ store }: { store: any }) {
           <div className="lg:col-span-7 space-y-6">
             <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-200">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
                   <ReceiptText size={24} />
                 </div>
                 <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">
@@ -214,20 +249,20 @@ export function Ventas({ store }: { store: any }) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Fecha</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Fecha</label>
                   <input
                     type="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 text-base"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Campaña</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Campaña</label>
                   <select
                     value={campana}
                     onChange={(e) => { setCampana(e.target.value); setItems([]); }}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50 font-bold text-blue-700"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 font-bold text-emerald-700 text-base"
                   >
                     <option value="">Seleccione Campaña</option>
                     {campanas.map((c: string) => (
@@ -236,25 +271,26 @@ export function Ventas({ store }: { store: any }) {
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Cliente (Opcional)</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Cliente (Opcional)</label>
                   <input
                     type="text"
                     value={cliente}
                     onChange={(e) => setCliente(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 text-base"
                     placeholder="Nombre del cliente o Razón Social"
                   />
                 </div>
                 {campana && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Precio Costo (S/)</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Precio Costo (S/)</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       value={costoUnitarioVenta}
                       onChange={(e) => setCostoUnitarioVenta(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50 font-bold text-emerald-600"
+                      onKeyDown={handleNumberKeyDown}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 font-bold text-emerald-600 text-base"
                       placeholder="0.00"
                     />
                   </div>
@@ -273,20 +309,20 @@ export function Ventas({ store }: { store: any }) {
                   </div>
                   <div className="text-center">
                     <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">Costo Promedio</div>
-                    <div className="text-lg font-bold text-blue-400">S/ {stock.costoUnitario.toFixed(2)}</div>
+                    <div className="text-lg font-bold text-emerald-400">S/ {stock.costoUnitario.toFixed(2)}</div>
                   </div>
                 </div>
               )}
 
-              <div className="bg-slate-50 p-4 md:p-5 rounded-2xl border border-slate-200 mb-6">
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Agregar Ítem a Boleta</h4>
-                <div className="grid grid-cols-2 md:grid-cols-7 gap-4 items-end">
+              <div className="bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200 mb-6">
+                <h4 className="text-sm font-bold text-slate-700 uppercase tracking-widest mb-4">Agregar Ítem a Boleta</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
                   <div className="col-span-2 md:col-span-1">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Tipo</label>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Tipo</label>
                     <select
                       value={tipo}
                       onChange={(e) => setTipo(e.target.value as TipoPollo)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-semibold bg-white"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl text-base font-semibold bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                     >
                       <option value="BRASA">Brasa (H)</option>
                       <option value="PRESA">Presa (M)</option>
@@ -294,70 +330,76 @@ export function Ventas({ store }: { store: any }) {
                       <option value="TIPO_MACHO">Tipo (M)</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Cant.</label>
+                  <div className="col-span-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Cant.</label>
                     <input
                       type="number"
                       min="1"
                       value={cantidad}
                       onChange={(e) => setCantidad(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                      onKeyDown={handleNumberKeyDown}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl text-base font-semibold bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                       placeholder="0"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Peso (Kg)</label>
+                  <div className="col-span-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Peso (Kg)</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       value={pesoTotal}
                       onChange={(e) => setPesoTotal(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                      onKeyDown={handleNumberKeyDown}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl text-base font-semibold bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                       placeholder="0.00"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">P. x Kg</label>
+                  <div className="col-span-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">P. x Kg</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       value={precioKilo}
                       onChange={(e) => setPrecioKilo(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                      onKeyDown={handleNumberKeyDown}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl text-base font-semibold bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                       placeholder="0.00"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">N° Jabas</label>
+                  <div className="col-span-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">N° Jabas</label>
                     <input
                       type="number"
                       min="0"
                       value={itemJabas}
                       onChange={(e) => setItemJabas(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                      onKeyDown={handleNumberKeyDown}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl text-base font-semibold bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                       placeholder="0"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1.5">Pollos x Jaba</label>
+                  <div className="col-span-2 md:col-span-1">
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Pollos x Jaba</label>
                     <input
                       type="number"
                       min="0"
                       value={itemPollosPorJaba}
                       onChange={(e) => setItemPollosPorJaba(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+                      onKeyDown={handleNumberKeyDown}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl text-base font-semibold bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                       placeholder="0"
                     />
                   </div>
-                  <div className="col-span-2 md:col-span-1">
+                  <div className="col-span-2 md:col-span-4 mt-2">
                     <button
                       type="button"
                       onClick={handleAddItem}
-                      className="w-full bg-slate-800 text-white py-2 rounded-lg hover:bg-slate-700 flex justify-center items-center transition-colors shadow-sm"
+                      className="w-full bg-slate-800 text-white py-3.5 rounded-xl hover:bg-slate-700 flex justify-center items-center gap-2 transition-colors shadow-sm"
                     >
                       <Plus size={20} />
+                      <span className="text-base font-bold">Agregar Ítem</span>
                     </button>
                   </div>
                 </div>
@@ -404,7 +446,7 @@ export function Ventas({ store }: { store: any }) {
                     <tfoot className="bg-slate-50/80">
                       <tr>
                         <td colSpan={4} className="px-4 py-4 text-right font-bold text-slate-500 uppercase tracking-widest text-xs">TOTAL A PAGAR:</td>
-                        <td className="px-4 py-4 text-right font-black text-blue-600 text-xl">S/ {totalBoleta.toFixed(2)}</td>
+                        <td className="px-4 py-4 text-right font-black text-emerald-600 text-xl">S/ {totalBoleta.toFixed(2)}</td>
                         <td></td>
                       </tr>
                     </tfoot>
@@ -420,8 +462,8 @@ export function Ventas({ store }: { store: any }) {
                       setItems([]);
                       setCliente('');
                       setCampana('');
-                      setJabas('');
-                      setPollosPorJaba('');
+                      setItemJabas('');
+                      setItemPollosPorJaba('');
                       setDate(format(new Date(), 'yyyy-MM-dd'));
                       setError('');
                     }}
@@ -433,7 +475,7 @@ export function Ventas({ store }: { store: any }) {
                 <button
                   onClick={handleSaveVenta}
                   disabled={items.length === 0}
-                  className={`${isEditing ? 'w-2/3' : 'w-full'} bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none uppercase tracking-widest text-sm`}
+                  className={`${isEditing ? 'w-2/3' : 'w-full'} bg-emerald-600 text-white font-bold py-4 rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none uppercase tracking-widest text-sm`}
                 >
                   {isEditing ? 'Guardar Cambios' : 'Emitir Boleta de Venta'}
                 </button>
@@ -446,7 +488,7 @@ export function Ventas({ store }: { store: any }) {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden sticky top-8">
               <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                 <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Últimas Ventas</h3>
-                <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase">Recientes</span>
+                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase">Recientes</span>
               </div>
               <div className="overflow-y-auto max-h-[calc(100vh-250px)] p-4 space-y-4">
                 {ventas.length > 0 ? (
@@ -454,8 +496,15 @@ export function Ventas({ store }: { store: any }) {
                     const totalPollos = t.items?.reduce((acc, i) => acc + i.cantidad, 0) || 0;
                     const totalPeso = t.items?.reduce((acc, i) => acc + i.pesoTotal, 0) || 0;
                     return (
-                      <div key={t.id} className="border border-slate-100 bg-slate-50/30 rounded-2xl p-4 hover:border-blue-200 hover:bg-white transition-all group relative">
+                      <div key={t.id} className="border border-slate-100 bg-slate-50/30 rounded-2xl p-4 hover:border-emerald-200 hover:bg-white transition-all group relative">
                         <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button 
+                            onClick={() => handleDownloadPDF(t)}
+                            className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all"
+                            title="Descargar PDF"
+                          >
+                            <Download size={18} />
+                          </button>
                           <button 
                             onClick={() => setPrintData(t)}
                             className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
@@ -463,27 +512,31 @@ export function Ventas({ store }: { store: any }) {
                           >
                             <Printer size={18} />
                           </button>
-                          <button 
-                            onClick={() => handleEditVenta(t)}
-                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                            title="Editar Venta"
-                          >
-                            <Pencil size={18} />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteVenta(t.id)}
-                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                            title="Eliminar Venta"
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          {store.currentUser?.role !== 'despachador' && (
+                            <button 
+                              onClick={() => handleEditVenta(t)}
+                              className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                              title="Editar Venta"
+                            >
+                              <Pencil size={18} />
+                            </button>
+                          )}
+                          {store.currentUser?.role === 'admin' && (
+                            <button 
+                              onClick={() => handleDeleteVenta(t.id)}
+                              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                              title="Eliminar Venta"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
                         </div>
                         <div className="flex justify-between items-start mb-3 pr-24">
                           <div>
                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{format(new Date(t.date), 'dd MMM yyyy')}</div>
                             <h4 className="font-bold text-slate-800 leading-tight">{t.cliente || 'Cliente General'}</h4>
                             <div className="flex gap-2 mt-1">
-                              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">{t.campana}</span>
+                              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded uppercase">{t.campana}</span>
                             </div>
                           </div>
                           <div className="text-right">
@@ -493,7 +546,7 @@ export function Ventas({ store }: { store: any }) {
                         </div>
                         <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase tracking-tighter pt-3 border-t border-slate-100">
                           <div className="flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                             {totalPollos} pollos
                           </div>
                           <div className="flex items-center gap-1">
@@ -552,7 +605,10 @@ export function Ventas({ store }: { store: any }) {
 
       {/* PRINT VIEW */}
       {printData && (
-        <div className="hidden print:block bg-white text-black font-sans">
+        <div 
+          id="print-container" 
+          className={`${isDownloading ? 'block absolute top-0 left-0 w-[800px] z-[-1000] bg-white' : 'hidden print:block'} text-black font-sans`}
+        >
           
           {/* 1. ORDEN DE DESPACHO */}
           <div className="p-8 min-h-screen relative" style={{ pageBreakAfter: 'always' }}>

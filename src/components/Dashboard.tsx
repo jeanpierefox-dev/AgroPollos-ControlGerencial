@@ -122,7 +122,7 @@ export function Dashboard({ store }: { store: any }) {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
           <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">ROI Global</p>
           <div className="flex items-baseline gap-1">
-            <p className={`text-2xl font-black tracking-tight ${roi >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+            <p className={`text-2xl font-black tracking-tight ${roi >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {roi.toFixed(1)}
             </p>
             <span className="text-sm font-bold text-slate-300">%</span>
@@ -183,7 +183,7 @@ export function Dashboard({ store }: { store: any }) {
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Machos (Presa/Tipo)</p>
                 <p className="text-3xl font-black text-slate-900 tracking-tighter">{stock.machos.toLocaleString()}</p>
               </div>
-              <div className="h-14 w-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-xl shadow-sm">M</div>
+              <div className="h-14 w-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-xl shadow-sm">M</div>
             </div>
             <div className="pt-6 border-t-2 border-dashed border-slate-100 flex justify-between items-end">
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Total Población</p>

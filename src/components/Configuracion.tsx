@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Save, Upload, Trash2, AlertTriangle } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Save, Upload, Trash2, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface ConfiguracionProps {
   store: any;
@@ -10,7 +10,15 @@ export function Configuracion({ store }: ConfiguracionProps) {
   const [appName, setAppName] = useState(appConfig.appName);
   const [logoBase64, setLogoBase64] = useState<string | null>(appConfig.logo);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -28,19 +36,27 @@ export function Configuracion({ store }: ConfiguracionProps) {
       appName,
       logo: logoBase64,
     });
-    alert('Configuración guardada exitosamente.');
+    setNotification({ message: 'Configuración guardada exitosamente.', type: 'success' });
   };
 
   const handleReset = () => {
-    if (window.confirm('¿Está absolutamente seguro de que desea restablecer todo el sistema? Esta acción eliminará todos los ingresos y ventas de forma permanente.')) {
-      resetStore();
-      setShowResetConfirm(false);
-      alert('El sistema ha sido restablecido a sus valores de fábrica.');
-    }
+    resetStore();
+    setShowResetConfirm(false);
+    setNotification({ message: 'El sistema ha sido restablecido a sus valores de fábrica.', type: 'success' });
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto relative">
+      {/* Notification Toast */}
+      {notification && (
+        <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg animate-in slide-in-from-top-4 fade-in duration-300 ${
+          notification.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+        }`}>
+          {notification.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
+          <span className="font-medium text-sm">{notification.message}</span>
+        </div>
+      )}
+
       <h2 className="text-2xl font-bold text-slate-800 mb-6">Configuración del Sistema</h2>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
@@ -56,7 +72,7 @@ export function Configuracion({ store }: ConfiguracionProps) {
                 type="text"
                 value={appName}
                 onChange={(e) => setAppName(e.target.value)}
-                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 placeholder="Ej: AgroPollos"
               />
               <p className="text-sm text-slate-500 mt-1">
@@ -111,7 +127,7 @@ export function Configuracion({ store }: ConfiguracionProps) {
         <div className="p-4 bg-slate-50 flex justify-end">
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
           >
             <Save size={20} />
             Guardar Cambios

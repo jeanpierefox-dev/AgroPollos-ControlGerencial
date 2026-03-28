@@ -13,13 +13,22 @@ export function Ingresos({ store }: { store: any }) {
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [campana, setCampana] = useState('');
-  const [plantel, setPlantel] = useState('');
-  const [galpon, setGalpon] = useState('');
+  const [plantel, setPlantel] = useState('EVP-01');
+  const [galponMachos, setGalponMachos] = useState('01');
+  const [galponHembras, setGalponHembras] = useState('02');
   const [hembras, setHembras] = useState('');
   const [machos, setMachos] = useState('');
+  const [muertesHembras, setMuertesHembras] = useState('');
+  const [muertesMachos, setMuertesMachos] = useState('');
   const [costoUnitario, setCostoUnitario] = useState('');
   
   const [printData, setPrintData] = useState<Transaction | null>(null);
+
+  const handleNumberKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
 
   useEffect(() => {
     if (printData) {
@@ -35,7 +44,7 @@ export function Ingresos({ store }: { store: any }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!campana || !plantel || !galpon || !hembras || !machos || !costoUnitario) return;
+    if (!campana || !plantel || !hembras || !machos || !costoUnitario) return;
 
     const totalCosto = (parseInt(hembras) + parseInt(machos)) * parseFloat(costoUnitario);
 
@@ -45,9 +54,13 @@ export function Ingresos({ store }: { store: any }) {
       type: 'INGRESO',
       campana,
       plantel,
-      galpon,
+      galponMachos,
+      galponHembras,
+      galpon: `M:${galponMachos} | H:${galponHembras}`,
       hembrasIn: parseInt(hembras),
       machosIn: parseInt(machos),
+      muertesHembras: parseInt(muertesHembras) || 0,
+      muertesMachos: parseInt(muertesMachos) || 0,
       costoUnitarioIn: parseFloat(costoUnitario),
       totalCosto,
       totalVenta: 0,
@@ -65,10 +78,13 @@ export function Ingresos({ store }: { store: any }) {
 
   const resetForm = () => {
     setCampana('');
-    setPlantel('');
-    setGalpon('');
+    setPlantel('EVP-01');
+    setGalponMachos('01');
+    setGalponHembras('02');
     setHembras('');
     setMachos('');
+    setMuertesHembras('');
+    setMuertesMachos('');
     setCostoUnitario('');
     setIsEditing(null);
     setIsModalOpen(false);
@@ -78,10 +94,13 @@ export function Ingresos({ store }: { store: any }) {
     setIsEditing(t.id);
     setDate(t.date);
     setCampana(t.campana || '');
-    setPlantel(t.plantel || '');
-    setGalpon(t.galpon || '');
+    setPlantel(t.plantel || 'EVP-01');
+    setGalponMachos(t.galponMachos || '01');
+    setGalponHembras(t.galponHembras || '02');
     setHembras(t.hembrasIn?.toString() || '');
     setMachos(t.machosIn?.toString() || '');
+    setMuertesHembras(t.muertesHembras?.toString() || '');
+    setMuertesMachos(t.muertesMachos?.toString() || '');
     setCostoUnitario(t.costoUnitarioIn?.toString() || '');
     setIsModalOpen(true);
   };
@@ -128,9 +147,9 @@ export function Ingresos({ store }: { store: any }) {
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Campaña</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Plantel</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Galpón</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Hembras</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Machos</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Costo Unit.</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Hembras (Brasa)</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Machos (Presa)</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Muertes</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Costo Total</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs text-right">Acciones</th>
                 </tr>
@@ -143,30 +162,32 @@ export function Ingresos({ store }: { store: any }) {
                         {format(new Date(t.date), 'dd/MM/yyyy')}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-bold border border-blue-100">
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-md text-xs font-bold border border-emerald-100">
                           {t.campana}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-bold border border-purple-100">
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-md text-xs font-bold border border-emerald-100">
                           {t.plantel || '-'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-md text-xs font-bold border border-amber-100">
+                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-md text-xs font-bold border border-emerald-100">
                           {t.galpon || '-'}
                         </span>
                       </td>
                       <td className="px-6 py-4 font-medium">{t.hembrasIn}</td>
                       <td className="px-6 py-4 font-medium">{t.machosIn}</td>
-                      <td className="px-6 py-4 text-slate-500">S/ {t.costoUnitarioIn?.toFixed(2)}</td>
+                      <td className="px-6 py-4 font-medium text-red-600">
+                        {(t.muertesHembras || 0) + (t.muertesMachos || 0)}
+                      </td>
                       <td className="px-6 py-4 font-bold text-slate-900">S/ {t.totalCosto.toFixed(2)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button onClick={() => setPrintData(t)} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Imprimir Reporte">
                             <Printer size={18} />
                           </button>
-                          <button onClick={() => handleEdit(t)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                          <button onClick={() => handleEdit(t)} className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
                             <Pencil size={18} />
                           </button>
                           <button onClick={() => handleDelete(t.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
@@ -199,7 +220,7 @@ export function Ingresos({ store }: { store: any }) {
                       {format(new Date(t.date), 'dd/MM/yyyy')}
                     </div>
                     <div className="flex gap-2">
-                      <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold border border-blue-100 uppercase">
+                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold border border-emerald-100 uppercase">
                         {t.campana}
                       </span>
                       <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-[10px] font-bold border border-purple-100 uppercase">
@@ -218,12 +239,16 @@ export function Ingresos({ store }: { store: any }) {
                 
                 <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 mb-4">
                   <div>
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">Hembras</div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Hembras (Brasa)</div>
                     <div className="text-sm font-semibold text-slate-700">{t.hembrasIn}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">Machos</div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Machos (Presa)</div>
                     <div className="text-sm font-semibold text-slate-700">{t.machosIn}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Muertes</div>
+                    <div className="text-sm font-semibold text-red-600">{(t.muertesHembras || 0) + (t.muertesMachos || 0)}</div>
                   </div>
                   <div>
                     <div className="text-[10px] text-slate-400 uppercase font-bold">Costo Unit.</div>
@@ -244,7 +269,7 @@ export function Ingresos({ store }: { store: any }) {
                     Reporte
                   </button>
                   <div className="flex gap-3">
-                    <button onClick={() => handleEdit(t)} className="p-2 text-blue-500 bg-blue-50 rounded-lg">
+                    <button onClick={() => handleEdit(t)} className="p-2 text-emerald-500 bg-emerald-50 rounded-lg">
                       <Pencil size={18} />
                     </button>
                     <button onClick={() => handleDelete(t.id)} className="p-2 text-red-500 bg-red-50 rounded-lg">
@@ -276,78 +301,130 @@ export function Ingresos({ store }: { store: any }) {
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de Ingreso</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Fecha de Ingreso</label>
                 <input
                   type="date"
                   required
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Campaña</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Campaña</label>
                   <input
                     type="text"
                     required
                     value={campana}
                     onChange={(e) => setCampana(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base"
                     placeholder="Ej. C-01"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Plantel</label>
-                  <input
-                    type="text"
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Plantel</label>
+                  <select
                     required
                     value={plantel}
                     onChange={(e) => setPlantel(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    placeholder="Ej. P-01"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Galpón</label>
-                  <input
-                    type="text"
-                    required
-                    value={galpon}
-                    onChange={(e) => setGalpon(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    placeholder="Ej. G-01"
-                  />
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base bg-white"
+                  >
+                    <option value="EVP-01">EVP-01</option>
+                    <option value="EVP-02">EVP-02</option>
+                  </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Cant. Hembras</label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={hembras}
-                    onChange={(e) => setHembras(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    placeholder="0"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-pink-50 p-4 rounded-xl border border-pink-100">
+                  <h4 className="text-sm font-bold text-pink-800 uppercase mb-4">Hembras (Brasa)</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-pink-700 mb-1.5">Galpón Asignado</label>
+                      <select
+                        value={galponHembras}
+                        onChange={(e) => setGalponHembras(e.target.value)}
+                        className="w-full px-4 py-3 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-base bg-white font-semibold text-pink-900"
+                      >
+                        <option value="01">Galpón 01</option>
+                        <option value="02">Galpón 02</option>
+                        <option value="03">Galpón 03</option>
+                        <option value="04">Galpón 04</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-pink-700 mb-1.5">Cantidad Ingreso</label>
+                      <input
+                        type="number"
+                        min="0"
+                        required
+                        value={hembras}
+                        onChange={(e) => setHembras(e.target.value)}
+                        onKeyDown={handleNumberKeyDown}
+                        className="w-full px-4 py-3 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-lg font-semibold"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-pink-700 mb-1.5">Muertes en Viaje</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={muertesHembras}
+                        onChange={(e) => setMuertesHembras(e.target.value)}
+                        onKeyDown={handleNumberKeyDown}
+                        className="w-full px-4 py-3 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-lg font-semibold"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Cant. Machos</label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    value={machos}
-                    onChange={(e) => setMachos(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    placeholder="0"
-                  />
+                <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                  <h4 className="text-sm font-bold text-emerald-800 uppercase mb-4">Machos (Presa)</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-emerald-700 mb-1.5">Galpón Asignado</label>
+                      <select
+                        value={galponMachos}
+                        onChange={(e) => setGalponMachos(e.target.value)}
+                        className="w-full px-4 py-3 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base bg-white font-semibold text-emerald-900"
+                      >
+                        <option value="01">Galpón 01</option>
+                        <option value="02">Galpón 02</option>
+                        <option value="03">Galpón 03</option>
+                        <option value="04">Galpón 04</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-emerald-700 mb-1.5">Cantidad Ingreso</label>
+                      <input
+                        type="number"
+                        min="0"
+                        required
+                        value={machos}
+                        onChange={(e) => setMachos(e.target.value)}
+                        onKeyDown={handleNumberKeyDown}
+                        className="w-full px-4 py-3 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-lg font-semibold"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-emerald-700 mb-1.5">Muertes en Viaje</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={muertesMachos}
+                        onChange={(e) => setMuertesMachos(e.target.value)}
+                        onKeyDown={handleNumberKeyDown}
+                        className="w-full px-4 py-3 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-lg font-semibold"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Costo Unitario (S/)</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Costo Unitario (S/)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -355,13 +432,14 @@ export function Ingresos({ store }: { store: any }) {
                   required
                   value={costoUnitario}
                   onChange={(e) => setCostoUnitario(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  onKeyDown={handleNumberKeyDown}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base font-semibold"
                   placeholder="0.00"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full bg-emerald-600 text-white font-medium py-2.5 rounded-lg hover:bg-emerald-700 transition-colors mt-2"
+                className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-700 transition-colors mt-4 shadow-sm text-base"
               >
                 {isEditing ? 'Guardar Cambios' : 'Registrar Ingreso'}
               </button>
@@ -431,7 +509,8 @@ export function Ingresos({ store }: { store: any }) {
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Detalles de Campaña</h3>
               <p className="mb-1"><strong>Campaña:</strong> {printData.campana}</p>
               <p className="mb-1"><strong>Plantel:</strong> {printData.plantel || '-'}</p>
-              <p className="mb-1"><strong>Galpón:</strong> {printData.galpon}</p>
+              <p className="mb-1"><strong>Galpón Machos:</strong> {printData.galponMachos || '-'}</p>
+              <p className="mb-1"><strong>Galpón Hembras:</strong> {printData.galponHembras || '-'}</p>
               <p><strong>Fecha de Ingreso:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
             </div>
             <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
@@ -446,24 +525,36 @@ export function Ingresos({ store }: { store: any }) {
             <thead>
               <tr className="bg-slate-100">
                 <th className="border border-slate-300 px-4 py-2">Tipo</th>
-                <th className="border border-slate-300 px-4 py-2 text-right">Cantidad</th>
+                <th className="border border-slate-300 px-4 py-2 text-right">Ingreso</th>
+                <th className="border border-slate-300 px-4 py-2 text-right">Muertes</th>
+                <th className="border border-slate-300 px-4 py-2 text-right">Aves Vivas</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td className="border border-slate-300 px-4 py-2">Hembras</td>
+                <td className="border border-slate-300 px-4 py-2">Hembras (Brasa)</td>
                 <td className="border border-slate-300 px-4 py-2 text-right">{printData.hembrasIn}</td>
+                <td className="border border-slate-300 px-4 py-2 text-right text-red-600">{printData.muertesHembras || 0}</td>
+                <td className="border border-slate-300 px-4 py-2 text-right font-bold">{(printData.hembrasIn || 0) - (printData.muertesHembras || 0)}</td>
               </tr>
               <tr>
-                <td className="border border-slate-300 px-4 py-2">Machos</td>
+                <td className="border border-slate-300 px-4 py-2">Machos (Presa)</td>
                 <td className="border border-slate-300 px-4 py-2 text-right">{printData.machosIn}</td>
+                <td className="border border-slate-300 px-4 py-2 text-right text-red-600">{printData.muertesMachos || 0}</td>
+                <td className="border border-slate-300 px-4 py-2 text-right font-bold">{(printData.machosIn || 0) - (printData.muertesMachos || 0)}</td>
               </tr>
             </tbody>
             <tfoot>
               <tr className="bg-slate-50 font-bold">
-                <td className="border border-slate-300 px-4 py-2 text-right">TOTAL AVES:</td>
+                <td className="border border-slate-300 px-4 py-2 text-right">TOTALES:</td>
                 <td className="border border-slate-300 px-4 py-2 text-right">
                   {(printData.hembrasIn || 0) + (printData.machosIn || 0)}
+                </td>
+                <td className="border border-slate-300 px-4 py-2 text-right text-red-600">
+                  {(printData.muertesHembras || 0) + (printData.muertesMachos || 0)}
+                </td>
+                <td className="border border-slate-300 px-4 py-2 text-right">
+                  {((printData.hembrasIn || 0) + (printData.machosIn || 0)) - ((printData.muertesHembras || 0) + (printData.muertesMachos || 0))}
                 </td>
               </tr>
             </tfoot>
