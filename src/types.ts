@@ -1,4 +1,4 @@
-export type TransactionType = 'INGRESO' | 'VENTA';
+export type TransactionType = 'INGRESO' | 'VENTA' | 'MORTALIDAD';
 export type TipoPollo = 'BRASA' | 'PRESA' | 'TIPO_HEMBRA' | 'TIPO_MACHO';
 export type Role = 'admin' | 'vendedor' | 'despachador';
 
@@ -39,15 +39,19 @@ export interface Transaction {
   plantel?: string;
   hembrasIn?: number;
   machosIn?: number;
-  muertesHembras?: number;
-  muertesMachos?: number;
   costoUnitarioIn?: number;
   
   // For VENTA
   cliente?: string;
+  direccionCliente?: string;
   items?: SaleItem[];
   jabas?: number;
   pollosPorJaba?: number;
+  
+  // For MORTALIDAD
+  galponAfectado?: 'HEMBRAS' | 'MACHOS';
+  cantidadMuertos?: number;
+  causa?: string;
   
   // Calculated
   totalCosto: number;

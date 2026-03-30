@@ -12,6 +12,7 @@ export function Dashboard({ store }: { store: any }) {
 
   const totalVentas = transactions.filter((t: any) => t.type === 'VENTA').reduce((acc: number, t: any) => acc + t.totalVenta, 0);
   const totalCostos = transactions.filter((t: any) => t.type === 'INGRESO').reduce((acc: number, t: any) => acc + t.totalCosto, 0);
+  const totalMortalidad = transactions.filter((t: any) => t.type === 'MORTALIDAD').reduce((acc: number, t: any) => acc + (t.cantidadMuertos || 0), 0);
   const totalGanancia = totalVentas - totalCostos;
   
   const margenUtilidad = totalVentas > 0 ? (totalGanancia / totalVentas) * 100 : 0;
@@ -83,7 +84,7 @@ export function Dashboard({ store }: { store: any }) {
       </div>
       
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
           <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Ingresos Brutos</p>
           <div className="flex items-baseline gap-1">
@@ -97,6 +98,14 @@ export function Dashboard({ store }: { store: any }) {
           <div className="flex items-baseline gap-1">
             <span className="text-sm font-bold text-slate-300">S/</span>
             <p className="text-2xl font-black text-slate-900 tracking-tight">{totalCostos.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 transition-all hover:shadow-md">
+          <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Mortalidad Total</p>
+          <div className="flex items-baseline gap-1">
+            <p className="text-2xl font-black text-red-600 tracking-tight">{totalMortalidad}</p>
+            <span className="text-sm font-bold text-red-400">aves</span>
           </div>
         </div>
 

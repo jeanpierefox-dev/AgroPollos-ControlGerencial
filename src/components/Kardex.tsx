@@ -28,6 +28,15 @@ export function Kardex({ store }: { store: any }) {
       });
       saldoHembras -= salidaHembras;
       saldoMachos -= salidaMachos;
+    } else if (t.type === 'MORTALIDAD') {
+      if (t.galponAfectado === 'HEMBRAS') {
+        salidaHembras += t.cantidadMuertos || 0;
+        saldoHembras -= salidaHembras;
+      }
+      if (t.galponAfectado === 'MACHOS') {
+        salidaMachos += t.cantidadMuertos || 0;
+        saldoMachos -= salidaMachos;
+      }
     }
 
     return {
@@ -154,10 +163,12 @@ export function Kardex({ store }: { store: any }) {
                         {row.type === 'INGRESO' ? (
                           <TrendingUp size={14} className="text-emerald-500" />
                         ) : (
-                          <TrendingDown size={14} className="text-emerald-500" />
+                          <TrendingDown size={14} className={row.type === 'MORTALIDAD' ? 'text-red-500' : 'text-emerald-500'} />
                         )}
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase ${
-                          row.type === 'INGRESO' ? 'bg-emerald-100 text-emerald-700' : 'bg-emerald-100 text-emerald-700'
+                          row.type === 'INGRESO' ? 'bg-emerald-100 text-emerald-700' : 
+                          row.type === 'MORTALIDAD' ? 'bg-red-100 text-red-700' : 
+                          'bg-blue-100 text-blue-700'
                         }`}>
                           {row.type}
                         </span>

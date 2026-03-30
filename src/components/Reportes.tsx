@@ -37,7 +37,8 @@ export function Reportes({ store }: { store: any }) {
           machos: 0,
           brasa: 0,
           presa: 0,
-          tipo: 0
+          tipo: 0,
+          mortalidad: 0
         };
       }
       
@@ -55,6 +56,8 @@ export function Reportes({ store }: { store: any }) {
           else if (item.tipo === 'PRESA') stats[t.campana].presa += item.cantidad;
           else stats[t.campana].tipo += item.cantidad;
         });
+      } else if (t.type === 'MORTALIDAD') {
+        stats[t.campana].mortalidad += t.cantidadMuertos || 0;
       }
     });
     
@@ -74,9 +77,11 @@ export function Reportes({ store }: { store: any }) {
         acc.totalVentas += t.totalVenta || 0;
         acc.totalCostosVenta += t.totalCosto || 0;
         acc.totalUtilidad += t.ganancia || 0;
+      } else if (t.type === 'MORTALIDAD') {
+        acc.totalMuertes += t.cantidadMuertos || 0;
       }
       return acc;
-    }, { totalInversion: 0, totalVentas: 0, totalCostosVenta: 0, totalUtilidad: 0 });
+    }, { totalInversion: 0, totalVentas: 0, totalCostosVenta: 0, totalUtilidad: 0, totalMuertes: 0 });
   }, [filteredTransactions]);
 
   const handlePrint = () => {
@@ -176,13 +181,13 @@ export function Reportes({ store }: { store: any }) {
           </div>
         </div>
         <div className="bg-slate-900 p-6 rounded-2xl shadow-lg shadow-slate-200/50">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Margen Promedio</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Mortalidad Total</p>
           <h3 className="text-2xl font-black text-white">
-            {totals.totalVentas > 0 ? ((totals.totalUtilidad / totals.totalVentas) * 100).toFixed(1) : '0.0'}%
+            {totals.totalMuertes} aves
           </h3>
-          <div className="mt-2 flex items-center text-emerald-400 text-xs font-bold">
+          <div className="mt-2 flex items-center text-red-400 text-xs font-bold">
             <TrendingUp size={14} className="mr-1" />
-            Rentabilidad
+            Bajas Registradas
           </div>
         </div>
       </div>
@@ -257,6 +262,7 @@ export function Reportes({ store }: { store: any }) {
                 <th className="px-6 py-4 border-b border-slate-100">Campaña (Galpón)</th>
                 <th className="px-6 py-4 border-b border-slate-100 text-right">Ventas</th>
                 <th className="px-6 py-4 border-b border-slate-100 text-right">Costos</th>
+                <th className="px-6 py-4 border-b border-slate-100 text-right">Mortalidad</th>
                 <th className="px-6 py-4 border-b border-slate-100 text-right">Utilidad</th>
                 <th className="px-6 py-4 border-b border-slate-100 text-right">ROI</th>
                 <th className="px-6 py-4 border-b border-slate-100 text-right">Margen</th>
@@ -271,6 +277,7 @@ export function Reportes({ store }: { store: any }) {
                   </td>
                   <td className="px-6 py-4 text-right font-medium">S/ {s.ventas.toLocaleString()}</td>
                   <td className="px-6 py-4 text-right text-slate-500">S/ {s.costos.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-right text-red-500 font-bold">{s.mortalidad}</td>
                   <td className="px-6 py-4 text-right">
                     <span className={`font-bold ${s.utilidad >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                       S/ {s.utilidad.toLocaleString()}
@@ -290,7 +297,7 @@ export function Reportes({ store }: { store: any }) {
               ))}
               {campaignStats.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
                     No hay datos para el periodo seleccionado.
                   </td>
                 </tr>

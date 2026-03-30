@@ -18,8 +18,6 @@ export function Ingresos({ store }: { store: any }) {
   const [galponHembras, setGalponHembras] = useState('02');
   const [hembras, setHembras] = useState('');
   const [machos, setMachos] = useState('');
-  const [muertesHembras, setMuertesHembras] = useState('');
-  const [muertesMachos, setMuertesMachos] = useState('');
   const [costoUnitario, setCostoUnitario] = useState('');
   
   const [printData, setPrintData] = useState<Transaction | null>(null);
@@ -59,8 +57,6 @@ export function Ingresos({ store }: { store: any }) {
       galpon: `M:${galponMachos} | H:${galponHembras}`,
       hembrasIn: parseInt(hembras),
       machosIn: parseInt(machos),
-      muertesHembras: parseInt(muertesHembras) || 0,
-      muertesMachos: parseInt(muertesMachos) || 0,
       costoUnitarioIn: parseFloat(costoUnitario),
       totalCosto,
       totalVenta: 0,
@@ -83,8 +79,6 @@ export function Ingresos({ store }: { store: any }) {
     setGalponHembras('02');
     setHembras('');
     setMachos('');
-    setMuertesHembras('');
-    setMuertesMachos('');
     setCostoUnitario('');
     setIsEditing(null);
     setIsModalOpen(false);
@@ -99,8 +93,6 @@ export function Ingresos({ store }: { store: any }) {
     setGalponHembras(t.galponHembras || '02');
     setHembras(t.hembrasIn?.toString() || '');
     setMachos(t.machosIn?.toString() || '');
-    setMuertesHembras(t.muertesHembras?.toString() || '');
-    setMuertesMachos(t.muertesMachos?.toString() || '');
     setCostoUnitario(t.costoUnitarioIn?.toString() || '');
     setIsModalOpen(true);
   };
@@ -146,10 +138,10 @@ export function Ingresos({ store }: { store: any }) {
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Fecha</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Campaña</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Plantel</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Galpón</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Hembras (Brasa)</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Machos (Presa)</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Muertes</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Galpón H.</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Hembras</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Galpón M.</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Machos</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Costo Total</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs text-right">Acciones</th>
                 </tr>
@@ -172,15 +164,17 @@ export function Ingresos({ store }: { store: any }) {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-md text-xs font-bold border border-emerald-100">
-                          {t.galpon || '-'}
+                        <span className="px-2.5 py-1 bg-pink-50 text-pink-700 rounded-md text-xs font-bold border border-pink-100">
+                          {t.galponHembras || '-'}
                         </span>
                       </td>
                       <td className="px-6 py-4 font-medium">{t.hembrasIn}</td>
-                      <td className="px-6 py-4 font-medium">{t.machosIn}</td>
-                      <td className="px-6 py-4 font-medium text-red-600">
-                        {(t.muertesHembras || 0) + (t.muertesMachos || 0)}
+                      <td className="px-6 py-4">
+                        <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-bold border border-blue-100">
+                          {t.galponMachos || '-'}
+                        </span>
                       </td>
+                      <td className="px-6 py-4 font-medium">{t.machosIn}</td>
                       <td className="px-6 py-4 font-bold text-slate-900">S/ {t.totalCosto.toFixed(2)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
@@ -226,9 +220,6 @@ export function Ingresos({ store }: { store: any }) {
                       <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded text-[10px] font-bold border border-purple-100 uppercase">
                         {t.plantel || '-'}
                       </span>
-                      <span className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-bold border border-amber-100 uppercase">
-                        {t.galpon || '-'}
-                      </span>
                     </div>
                   </div>
                   <div className="text-right">
@@ -238,17 +229,19 @@ export function Ingresos({ store }: { store: any }) {
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 mb-4">
-                  <div>
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">Hembras (Brasa)</div>
+                  <div className="bg-pink-50/50 p-2 rounded-lg border border-pink-100/50">
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="text-[10px] text-pink-600 uppercase font-bold">Hembras</div>
+                      <span className="text-[10px] font-bold bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded">G: {t.galponHembras || '-'}</span>
+                    </div>
                     <div className="text-sm font-semibold text-slate-700">{t.hembrasIn}</div>
                   </div>
-                  <div>
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">Machos (Presa)</div>
+                  <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50">
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="text-[10px] text-blue-600 uppercase font-bold">Machos</div>
+                      <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">G: {t.galponMachos || '-'}</span>
+                    </div>
                     <div className="text-sm font-semibold text-slate-700">{t.machosIn}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] text-slate-400 uppercase font-bold">Muertes</div>
-                    <div className="text-sm font-semibold text-red-600">{(t.muertesHembras || 0) + (t.muertesMachos || 0)}</div>
                   </div>
                   <div>
                     <div className="text-[10px] text-slate-400 uppercase font-bold">Costo Unit.</div>
@@ -365,18 +358,6 @@ export function Ingresos({ store }: { store: any }) {
                         placeholder="0"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-pink-700 mb-1.5">Muertes en Viaje</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={muertesHembras}
-                        onChange={(e) => setMuertesHembras(e.target.value)}
-                        onKeyDown={handleNumberKeyDown}
-                        className="w-full px-4 py-3 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-lg font-semibold"
-                        placeholder="0"
-                      />
-                    </div>
                   </div>
                 </div>
                 <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
@@ -403,18 +384,6 @@ export function Ingresos({ store }: { store: any }) {
                         required
                         value={machos}
                         onChange={(e) => setMachos(e.target.value)}
-                        onKeyDown={handleNumberKeyDown}
-                        className="w-full px-4 py-3 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-lg font-semibold"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-emerald-700 mb-1.5">Muertes en Viaje</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={muertesMachos}
-                        onChange={(e) => setMuertesMachos(e.target.value)}
                         onKeyDown={handleNumberKeyDown}
                         className="w-full px-4 py-3 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-lg font-semibold"
                         placeholder="0"
@@ -485,87 +454,106 @@ export function Ingresos({ store }: { store: any }) {
 
       {/* PRINT VIEW */}
       {printData && (
-        <div className="hidden print:block p-8 bg-white text-black min-h-screen">
-          <div className="border-b-2 border-slate-800 pb-4 mb-8 flex justify-between items-end">
-            <div className="flex items-center gap-4">
-              {appConfig.logo ? (
-                <img src={appConfig.logo} alt="Logo" className="w-12 h-12 object-contain rounded" />
-              ) : (
-                <Logo className="w-12 h-12" iconSize={32} />
-              )}
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">{appConfig.appName}</h1>
-                <p className="text-slate-500">Reporte de Ingreso de Crianza</p>
+        <div className="hidden print:block p-8 bg-white text-black min-h-screen relative">
+          <div className="border-2 border-slate-800 rounded-xl overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b-2 border-emerald-800 bg-emerald-600 text-white">
+              <div className="flex items-center gap-4">
+                {appConfig.logo ? (
+                  <img src={appConfig.logo} alt="Logo" className="w-16 h-16 object-contain rounded bg-white p-1" />
+                ) : (
+                  <Logo className="w-16 h-16 text-white" iconSize={40} />
+                )}
+                <div>
+                  <h1 className="text-3xl font-black tracking-tight uppercase">{appConfig.appName}</h1>
+                  <p className="text-sm font-bold text-emerald-100 uppercase tracking-widest">Reporte de Ingreso de Crianza</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="border-2 border-emerald-800 p-3 rounded-lg bg-white inline-block text-center min-w-[150px] text-slate-900">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Ingreso N°</p>
+                  <p className="text-xl font-black text-slate-900">ING-{printData.id.split('-')[0].toUpperCase()}</p>
+                </div>
               </div>
             </div>
-            <div className="text-right text-sm">
-              <p><strong>Fecha de Emisión:</strong> {format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
-              <p><strong>ID Transacción:</strong> {printData.id.split('-')[0].toUpperCase()}</p>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-8 mb-8">
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Detalles de Campaña</h3>
-              <p className="mb-1"><strong>Campaña:</strong> {printData.campana}</p>
-              <p className="mb-1"><strong>Plantel:</strong> {printData.plantel || '-'}</p>
-              <p className="mb-1"><strong>Galpón Machos:</strong> {printData.galponMachos || '-'}</p>
-              <p className="mb-1"><strong>Galpón Hembras:</strong> {printData.galponHembras || '-'}</p>
-              <p><strong>Fecha de Ingreso:</strong> {format(new Date(printData.date), 'dd/MM/yyyy')}</p>
+            <div className="grid grid-cols-2 gap-0 border-b-2 border-slate-800">
+              <div className="p-6 border-r-2 border-slate-800">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Detalles de Campaña</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Campaña:</span>
+                    <span className="text-sm font-black text-slate-900">{printData.campana}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Plantel:</span>
+                    <span className="text-sm font-black text-slate-900">{printData.plantel || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Galpón Machos:</span>
+                    <span className="text-sm font-black text-slate-900">{printData.galponMachos || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Galpón Hembras:</span>
+                    <span className="text-sm font-black text-slate-900">{printData.galponHembras || '-'}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Detalles Financieros</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Fecha de Ingreso:</span>
+                    <span className="text-sm font-black text-slate-900">{format(new Date(printData.date), 'dd/MM/yyyy')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Costo Unitario:</span>
+                    <span className="text-sm font-black text-slate-900">S/ {printData.costoUnitarioIn?.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Costo Total:</span>
+                    <span className="text-sm font-black text-slate-900">S/ {printData.totalCosto.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Detalles Financieros</h3>
-              <p className="mb-1"><strong>Costo Unitario:</strong> S/ {printData.costoUnitarioIn?.toFixed(2)}</p>
-              <p className="mb-1"><strong>Costo Total:</strong> S/ {printData.totalCosto.toFixed(2)}</p>
-            </div>
-          </div>
 
-          <h3 className="text-lg font-bold text-slate-800 mb-4 border-b border-slate-200 pb-2">Desglose de Aves</h3>
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-100">
-                <th className="border border-slate-300 px-4 py-2">Tipo</th>
-                <th className="border border-slate-300 px-4 py-2 text-right">Ingreso</th>
-                <th className="border border-slate-300 px-4 py-2 text-right">Muertes</th>
-                <th className="border border-slate-300 px-4 py-2 text-right">Aves Vivas</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="border border-slate-300 px-4 py-2">Hembras (Brasa)</td>
-                <td className="border border-slate-300 px-4 py-2 text-right">{printData.hembrasIn}</td>
-                <td className="border border-slate-300 px-4 py-2 text-right text-red-600">{printData.muertesHembras || 0}</td>
-                <td className="border border-slate-300 px-4 py-2 text-right font-bold">{(printData.hembrasIn || 0) - (printData.muertesHembras || 0)}</td>
-              </tr>
-              <tr>
-                <td className="border border-slate-300 px-4 py-2">Machos (Presa)</td>
-                <td className="border border-slate-300 px-4 py-2 text-right">{printData.machosIn}</td>
-                <td className="border border-slate-300 px-4 py-2 text-right text-red-600">{printData.muertesMachos || 0}</td>
-                <td className="border border-slate-300 px-4 py-2 text-right font-bold">{(printData.machosIn || 0) - (printData.muertesMachos || 0)}</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr className="bg-slate-50 font-bold">
-                <td className="border border-slate-300 px-4 py-2 text-right">TOTALES:</td>
-                <td className="border border-slate-300 px-4 py-2 text-right">
-                  {(printData.hembrasIn || 0) + (printData.machosIn || 0)}
-                </td>
-                <td className="border border-slate-300 px-4 py-2 text-right text-red-600">
-                  {(printData.muertesHembras || 0) + (printData.muertesMachos || 0)}
-                </td>
-                <td className="border border-slate-300 px-4 py-2 text-right">
-                  {((printData.hembrasIn || 0) + (printData.machosIn || 0)) - ((printData.muertesHembras || 0) + (printData.muertesMachos || 0))}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-100 border-b-2 border-slate-800">
+                  <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Tipo de Ave</th>
+                  <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Galpón</th>
+                  <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Cantidad de Ingreso</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                <tr className="bg-white">
+                  <td className="px-6 py-4 font-bold uppercase text-xs">Hembras (Brasa)</td>
+                  <td className="px-6 py-4 font-bold uppercase text-xs text-emerald-700">{printData.galponHembras || '-'}</td>
+                  <td className="px-6 py-4 text-right font-black text-sm">{printData.hembrasIn}</td>
+                </tr>
+                <tr className="bg-white">
+                  <td className="px-6 py-4 font-bold uppercase text-xs">Machos (Presa)</td>
+                  <td className="px-6 py-4 font-bold uppercase text-xs text-emerald-700">{printData.galponMachos || '-'}</td>
+                  <td className="px-6 py-4 text-right font-black text-sm">{printData.machosIn}</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr className="bg-slate-50 border-t-2 border-slate-800">
+                  <td colSpan={2} className="px-6 py-4 text-right font-black uppercase text-xs tracking-widest">TOTAL AVES INGRESADAS:</td>
+                  <td className="px-6 py-4 text-right font-black text-2xl">
+                    {(printData.hembrasIn || 0) + (printData.machosIn || 0)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
 
-          <div className="mt-24 flex justify-between px-16">
-            <div className="text-center">
-              <div className="border-t border-slate-400 w-48 mx-auto pt-2">Firma Responsable</div>
-            </div>
-            <div className="text-center">
-              <div className="border-t border-slate-400 w-48 mx-auto pt-2">V° B° Gerencia</div>
+            <div className="mt-24 mb-12 flex justify-between px-16">
+              <div className="text-center">
+                <div className="border-t border-slate-400 pt-2 font-bold uppercase text-[10px] tracking-widest text-slate-500">Firma Responsable</div>
+              </div>
+              <div className="text-center">
+                <div className="border-t border-slate-400 pt-2 font-bold uppercase text-[10px] tracking-widest text-slate-500">V° B° Gerencia</div>
+              </div>
             </div>
           </div>
         </div>

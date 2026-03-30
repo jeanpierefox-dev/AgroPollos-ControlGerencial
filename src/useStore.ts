@@ -127,14 +127,17 @@ export function useStore() {
 
     transactions.filter(t => t.campana === campana && t.id !== excludeTransactionId).forEach(t => {
       if (t.type === 'INGRESO') {
-        hembras += (t.hembrasIn || 0) - (t.muertesHembras || 0);
-        machos += (t.machosIn || 0) - (t.muertesMachos || 0);
+        hembras += (t.hembrasIn || 0);
+        machos += (t.machosIn || 0);
         costoUnitario = t.costoUnitarioIn || 0;
       } else if (t.type === 'VENTA' && t.items) {
         t.items.forEach(item => {
           if (item.tipo === 'BRASA' || item.tipo === 'TIPO_HEMBRA') hembras -= item.cantidad;
           if (item.tipo === 'PRESA' || item.tipo === 'TIPO_MACHO') machos -= item.cantidad;
         });
+      } else if (t.type === 'MORTALIDAD') {
+        if (t.galponAfectado === 'HEMBRAS') hembras -= (t.cantidadMuertos || 0);
+        if (t.galponAfectado === 'MACHOS') machos -= (t.cantidadMuertos || 0);
       }
     });
     return { hembras, machos, costoUnitario };
@@ -153,6 +156,8 @@ export function useStore() {
     return {
       plantel: ingreso?.plantel || 'N/A',
       galpon: ingreso?.galpon || 'N/A',
+      galponHembras: ingreso?.galponHembras || 'N/A',
+      galponMachos: ingreso?.galponMachos || 'N/A',
       costoUnitario: ingreso?.costoUnitarioIn || 0
     };
   };
@@ -162,13 +167,16 @@ export function useStore() {
     let machos = 0;
     transactions.forEach(t => {
       if (t.type === 'INGRESO') {
-        hembras += (t.hembrasIn || 0) - (t.muertesHembras || 0);
-        machos += (t.machosIn || 0) - (t.muertesMachos || 0);
+        hembras += (t.hembrasIn || 0);
+        machos += (t.machosIn || 0);
       } else if (t.type === 'VENTA' && t.items) {
         t.items.forEach(item => {
           if (item.tipo === 'BRASA' || item.tipo === 'TIPO_HEMBRA') hembras -= item.cantidad;
           if (item.tipo === 'PRESA' || item.tipo === 'TIPO_MACHO') machos -= item.cantidad;
         });
+      } else if (t.type === 'MORTALIDAD') {
+        if (t.galponAfectado === 'HEMBRAS') hembras -= (t.cantidadMuertos || 0);
+        if (t.galponAfectado === 'MACHOS') machos -= (t.cantidadMuertos || 0);
       }
     });
     return { hembras, machos };
