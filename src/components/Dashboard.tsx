@@ -209,8 +209,8 @@ export function Dashboard({ store }: { store: any }) {
         <div className="px-6 py-5 border-b border-slate-200 bg-slate-50/50">
           <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Rendimiento por Campaña (Top 5)</h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-white text-slate-400 border-b border-slate-100">
               <tr>
                 <th className="px-6 py-4 font-black uppercase tracking-widest text-[10px]">Campaña</th>
@@ -250,6 +250,51 @@ export function Dashboard({ store }: { store: any }) {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-4 p-4">
+          {campanaPerformance.length > 0 ? (
+            campanaPerformance.map((row: any, idx: number) => (
+              <div key={idx} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Campaña</div>
+                    <div className="font-bold text-slate-800 text-lg">{row.campana}</div>
+                    <span className="inline-block mt-1 px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase tracking-wider">
+                      Galpón: {row.galpon}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-slate-500 mb-1 uppercase font-bold tracking-wider">Utilidad</div>
+                    <div className="text-xl font-black text-emerald-600">S/ {row.utilidad.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 mb-4">
+                  <div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Ingresos</div>
+                    <div className="text-sm font-semibold text-slate-700">S/ {row.ingresos.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-slate-400 uppercase font-bold">Costos</div>
+                    <div className="text-sm font-semibold text-slate-700">S/ {row.costos.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold">ROI</span>
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${row.roi >= 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                    {row.roi.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 italic">
+              No hay campañas registradas para mostrar rendimiento.
+            </div>
+          )}
         </div>
       </div>
     </div>

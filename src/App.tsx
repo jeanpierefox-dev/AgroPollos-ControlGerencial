@@ -8,6 +8,7 @@ import { Kardex } from './components/Kardex';
 import { Reportes } from './components/Reportes';
 import { Configuracion } from './components/Configuracion';
 import { Usuarios } from './components/Usuarios';
+import { Clientes } from './components/Clientes';
 import { Login } from './components/Login';
 import { Home } from './components/Home';
 import { useStore } from './useStore';
@@ -36,7 +37,7 @@ export default function App() {
     if (currentUser.role === 'despachador' && currentView !== 'ventas') {
       return <div className="p-8 text-center text-slate-500">No tienes permisos para acceder a esta sección.</div>;
     }
-    if (currentUser.role === 'vendedor' && !['dashboard', 'ventas'].includes(currentView)) {
+    if (currentUser.role === 'vendedor' && !['dashboard', 'ventas', 'clientes'].includes(currentView)) {
       return <div className="p-8 text-center text-slate-500">No tienes permisos para acceder a esta sección.</div>;
     }
 
@@ -45,6 +46,8 @@ export default function App() {
         return <Home setActiveTab={setCurrentView} currentUser={currentUser} />;
       case 'dashboard':
         return <Dashboard store={store} />;
+      case 'clientes':
+        return <Clientes />;
       case 'ingresos':
         return <Ingresos store={store} />;
       case 'mortalidad':

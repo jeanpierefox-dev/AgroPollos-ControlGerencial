@@ -15,6 +15,7 @@ export function Sidebar({ currentView, setCurrentView, store }: SidebarProps) {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'vendedor'] },
+    { id: 'clientes', label: 'Clientes', icon: Users, roles: ['admin', 'vendedor'] },
     { id: 'ingresos', label: 'Ingreso Crianza', icon: ArrowDownToLine, roles: ['admin'] },
     { id: 'ventas', label: 'Venta de Pollos', icon: ArrowUpFromLine, roles: ['admin', 'vendedor', 'despachador'] },
     { id: 'kardex', label: 'Kardex', icon: FileText, roles: ['admin'] },

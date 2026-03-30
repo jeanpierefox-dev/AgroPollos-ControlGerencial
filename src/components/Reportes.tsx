@@ -10,24 +10,34 @@ export function Reportes({ store }: { store: any }) {
   
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [activeTab, setActiveTab] = useState<'vivos' | 'bebes'>('vivos');
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((t: Transaction) => {
       const tDate = parseISO(t.date);
-      return isWithinInterval(tDate, {
+      const isWithinDate = isWithinInterval(tDate, {
         start: parseISO(startDate),
         end: parseISO(endDate)
       });
+      
+      if (!isWithinDate) return false;
+      
+      const isVivos = activeTab === 'vivos';
+      return t.productType === (isVivos ? 'pollos_vivos' : 'pollos_bebes') || (!t.productType && isVivos);
     });
-  }, [transactions, startDate, endDate]);
+  }, [transactions, startDate, endDate, activeTab]);
 
   const campaignStats = useMemo(() => {
     const stats: any = {};
     
     filteredTransactions.forEach((t: Transaction) => {
-      if (!stats[t.campana]) {
-        stats[t.campana] = {
-          campana: t.campana,
+      const groupKey = activeTab === 'bebes' ? (t.incubadora || 'Sin Incubadora') : (t.campana || 'Sin Campaña');
+      const groupLabel = activeTab === 'bebes' ? 'Incubadora' : 'Campaña';
+
+      if (!stats[groupKey]) {
+        stats[groupKey] = {
+          key: groupKey,
+          labelName: groupLabel,
           galpon: t.galpon || 'N/A',
           ingresos: 0,
           ventas: 0,
@@ -43,31 +53,31 @@ export function Reportes({ store }: { store: any }) {
       }
       
       if (t.type === 'INGRESO') {
-        stats[t.campana].ingresos += t.totalCosto || 0;
-        stats[t.campana].hembras += t.hembrasIn || 0;
-        stats[t.campana].machos += t.machosIn || 0;
+        stats[groupKey].ingresos += t.totalCosto || 0;
+        stats[groupKey].hembras += t.hembrasIn || 0;
+        stats[groupKey].machos += t.machosIn || 0;
       } else if (t.type === 'VENTA') {
-        stats[t.campana].ventas += t.totalVenta || 0;
-        stats[t.campana].costos += t.totalCosto || 0;
-        stats[t.campana].utilidad += t.ganancia || 0;
+        stats[groupKey].ventas += t.totalVenta || 0;
+        stats[groupKey].costos += t.totalCosto || 0;
+        stats[groupKey].utilidad += t.ganancia || 0;
         
         t.items?.forEach(item => {
-          if (item.tipo === 'BRASA') stats[t.campana].brasa += item.cantidad;
-          else if (item.tipo === 'PRESA') stats[t.campana].presa += item.cantidad;
-          else stats[t.campana].tipo += item.cantidad;
+          if (item.tipo === 'BRASA') stats[groupKey].brasa += item.cantidad;
+          else if (item.tipo === 'PRESA') stats[groupKey].presa += item.cantidad;
+          else stats[groupKey].tipo += item.cantidad;
         });
       } else if (t.type === 'MORTALIDAD') {
-        stats[t.campana].mortalidad += t.cantidadMuertos || 0;
+        stats[groupKey].mortalidad += t.cantidadMuertos || 0;
       }
     });
     
     return Object.values(stats).map((s: any) => ({
       ...s,
-      label: `${s.campana} (${s.galpon})`,
+      label: activeTab === 'vivos' ? `${s.key} (${s.galpon})` : `Incubadora ${s.key}`,
       roi: s.costos > 0 ? (s.utilidad / s.costos) * 100 : 0,
       margin: s.ventas > 0 ? (s.utilidad / s.ventas) * 100 : 0
     }));
-  }, [filteredTransactions]);
+  }, [filteredTransactions, activeTab]);
 
   const totals = useMemo(() => {
     return filteredTransactions.reduce((acc, t) => {
@@ -137,6 +147,29 @@ export function Reportes({ store }: { store: any }) {
         </div>
       </div>
 
+      <div className="flex gap-4 mb-6 print:hidden">
+        <button
+          onClick={() => setActiveTab('vivos')}
+          className={`px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all ${
+            activeTab === 'vivos'
+              ? 'bg-slate-800 text-white shadow-lg'
+              : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          Pollos Vivos (Granja)
+        </button>
+        <button
+          onClick={() => setActiveTab('bebes')}
+          className={`px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-sm transition-all ${
+            activeTab === 'bebes'
+              ? 'bg-slate-800 text-white shadow-lg'
+              : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          Pollos Bebés
+        </button>
+      </div>
+
       {/* Print Header */}
       <div className="hidden print:block mb-10 border-b-2 border-slate-900 pb-6">
         <div className="flex justify-between items-end">
@@ -144,7 +177,7 @@ export function Reportes({ store }: { store: any }) {
             <Logo className="w-12 h-12" iconSize={32} />
             <div>
               <h1 className="text-4xl font-black text-slate-900 tracking-tighter">AGROPOLLOS</h1>
-              <p className="text-slate-600 font-medium uppercase tracking-widest text-xs mt-1">Reporte de Desempeño Financiero</p>
+              <p className="text-slate-600 font-medium uppercase tracking-widest text-xs mt-1">Reporte de Desempeño Financiero - {activeTab === 'vivos' ? 'POLLOS VIVOS' : 'POLLOS BEBÉS'}</p>
             </div>
           </div>
           <div className="text-right text-sm text-slate-500">
@@ -197,7 +230,7 @@ export function Reportes({ store }: { store: any }) {
         <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
           <h3 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
             <DollarSign className="text-emerald-500" size={20} />
-            Utilidad por Campaña (Galpón)
+            {activeTab === 'vivos' ? 'Utilidad por Campaña (Galpón)' : 'Utilidad por Incubadora'}
           </h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -253,13 +286,17 @@ export function Reportes({ store }: { store: any }) {
       {/* Detailed Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-slate-900">Resumen Detallado por Campaña</h3>
+          <h3 className="text-lg font-bold text-slate-900">
+            {activeTab === 'vivos' ? 'Resumen Detallado por Campaña' : 'Resumen Detallado por Incubadora'}
+          </h3>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left text-sm border-collapse whitespace-nowrap">
             <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-widest">
               <tr>
-                <th className="px-6 py-4 border-b border-slate-100">Campaña (Galpón)</th>
+                <th className="px-6 py-4 border-b border-slate-100">
+                  {activeTab === 'vivos' ? 'Campaña (Galpón)' : 'Incubadora'}
+                </th>
                 <th className="px-6 py-4 border-b border-slate-100 text-right">Ventas</th>
                 <th className="px-6 py-4 border-b border-slate-100 text-right">Costos</th>
                 <th className="px-6 py-4 border-b border-slate-100 text-right">Mortalidad</th>
@@ -270,10 +307,10 @@ export function Reportes({ store }: { store: any }) {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {campaignStats.map((s: any) => (
-                <tr key={s.campana} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={s.key} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="font-bold text-slate-900">{s.campana}</div>
-                    <div className="text-[10px] text-slate-400">Galpón: {s.galpon}</div>
+                    <div className="font-bold text-slate-900">{s.key}</div>
+                    {activeTab === 'vivos' && <div className="text-[10px] text-slate-400">Galpón: {s.galpon}</div>}
                   </td>
                   <td className="px-6 py-4 text-right font-medium">S/ {s.ventas.toLocaleString()}</td>
                   <td className="px-6 py-4 text-right text-slate-500">S/ {s.costos.toLocaleString()}</td>
@@ -304,6 +341,64 @@ export function Reportes({ store }: { store: any }) {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-4 p-4">
+          {campaignStats.map((s: any) => (
+            <div key={s.key} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    {activeTab === 'vivos' ? 'Campaña' : 'Incubadora'}
+                  </div>
+                  <div className="font-bold text-slate-800 text-lg">
+                    {s.key}
+                  </div>
+                  {activeTab === 'vivos' && (
+                    <span className="inline-block mt-1 text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded uppercase tracking-wide">
+                      Galpón: {s.galpon}
+                    </span>
+                  )}
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-slate-500 mb-1 uppercase font-bold tracking-wider">Utilidad</div>
+                  <div className={`text-xl font-black ${s.utilidad >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                    S/ {s.utilidad.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 mb-4">
+                <div>
+                  <div className="text-[10px] text-slate-400 uppercase font-bold">Ventas</div>
+                  <div className="text-sm font-semibold text-slate-700">S/ {s.ventas.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 uppercase font-bold">Costos</div>
+                  <div className="text-sm font-semibold text-slate-700">S/ {s.costos.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 uppercase font-bold">Mortalidad</div>
+                  <div className="text-sm font-bold text-red-500">{s.mortalidad}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-slate-400 uppercase font-bold">ROI</div>
+                  <div className="text-sm font-semibold text-slate-700">{s.roi.toFixed(1)}%</div>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Margen</span>
+                <span className="text-sm font-bold text-slate-700">{s.margin.toFixed(1)}%</span>
+              </div>
+            </div>
+          ))}
+          {campaignStats.length === 0 && (
+            <div className="bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 italic">
+              No hay datos para el periodo seleccionado.
+            </div>
+          )}
         </div>
       </div>
 

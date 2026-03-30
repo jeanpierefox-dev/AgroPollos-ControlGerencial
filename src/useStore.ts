@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Transaction, AppConfig, User } from './types';
+import { Transaction, AppConfig, User, Client } from './types';
 
 const defaultAppConfig: AppConfig = {
   appName: 'AgroPollos',
@@ -17,6 +17,11 @@ const defaultAdmin: User = {
 export function useStore() {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     const saved = localStorage.getItem('pollos_transactions_v2');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [clients, setClients] = useState<Client[]>(() => {
+    const saved = localStorage.getItem('pollos_clients');
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -47,6 +52,10 @@ export function useStore() {
   useEffect(() => {
     localStorage.setItem('pollos_transactions_v2', JSON.stringify(transactions));
   }, [transactions]);
+
+  useEffect(() => {
+    localStorage.setItem('pollos_clients', JSON.stringify(clients));
+  }, [clients]);
 
   useEffect(() => {
     localStorage.setItem('pollos_app_config', JSON.stringify(appConfig));
@@ -97,6 +106,18 @@ export function useStore() {
 
   const deleteUser = (id: string) => {
     setUsers(prev => prev.filter(u => u.id !== id));
+  };
+
+  const addClient = (client: Client) => {
+    setClients(prev => [...prev, client]);
+  };
+
+  const updateClient = (id: string, updated: Client) => {
+    setClients(prev => prev.map(c => c.id === id ? updated : c));
+  };
+
+  const deleteClient = (id: string) => {
+    setClients(prev => prev.filter(c => c.id !== id));
   };
 
   const updateAppConfig = (config: Partial<AppConfig>) => {
@@ -162,6 +183,35 @@ export function useStore() {
     };
   };
 
+  const getStockByType = (type: 'pollos_bebes' | 'pollos_vivos') => {
+    let hembras = 0;
+    let machos = 0;
+    
+    transactions.forEach(t => {
+      // For INGRESO, we determine type by ingresoType
+      if (t.type === 'INGRESO') {
+        const isMatch = (type === 'pollos_bebes' && t.ingresoType === 'venta_directa') || 
+                        (type === 'pollos_vivos' && t.ingresoType === 'granja');
+        if (isMatch) {
+          hembras += (t.hembrasIn || 0);
+          machos += (t.machosIn || 0);
+        }
+      } 
+      // For VENTA and MORTALIDAD, we use productType
+      else if (t.type === 'VENTA' && t.productType === type && t.items) {
+        t.items.forEach(item => {
+          if (item.tipo === 'BRASA' || item.tipo === 'TIPO_HEMBRA') hembras -= item.cantidad;
+          if (item.tipo === 'PRESA' || item.tipo === 'TIPO_MACHO') machos -= item.cantidad;
+        });
+      } else if (t.type === 'MORTALIDAD' && t.productType === type) {
+        if (t.galponAfectado === 'HEMBRAS') hembras -= (t.cantidadMuertos || 0);
+        if (t.galponAfectado === 'MACHOS') machos -= (t.cantidadMuertos || 0);
+      }
+    });
+    
+    return { hembras, machos };
+  };
+
   const getGlobalStock = () => {
     let hembras = 0;
     let machos = 0;
@@ -200,6 +250,11 @@ export function useStore() {
     getStockByCampana, 
     getCampanas, 
     getCampanaInfo, 
-    getGlobalStock 
+    getGlobalStock,
+    getStockByType,
+    clients,
+    addClient,
+    updateClient,
+    deleteClient
   };
 }
