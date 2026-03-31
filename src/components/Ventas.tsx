@@ -7,7 +7,7 @@ import { Logo } from './Logo';
 import html2pdf from 'html2pdf.js';
 
 export function Ventas({ store }: { store: any }) {
-  const { transactions, appConfig, addTransaction, updateTransaction, deleteTransaction, getCampanas, getStockByCampana, getCampanaInfo } = store;
+  const { transactions, appConfig, addTransaction, updateTransaction, deleteTransaction, getCampanas, getStockByCampana, getCampanaInfo, clients } = store;
   
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -643,13 +643,42 @@ export function Ventas({ store }: { store: any }) {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">DNI / RUC Cliente</label>
                       <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={documentoCliente}
-                          onChange={(e) => setDocumentoCliente(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                          className="flex-1 px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 text-base"
-                          placeholder="Ingrese DNI o RUC"
-                        />
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            value={documentoCliente}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, '').slice(0, 11);
+                              setDocumentoCliente(val);
+                              // Auto-fill if found in local database
+                              const found = clients.find((c: any) => c.documento === val);
+                              if (found) {
+                                setCliente(found.nombre);
+                                setDireccionCliente(found.direccion || '');
+                              }
+                            }}
+                            className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 text-base"
+                            placeholder="Ingrese DNI o RUC"
+                          />
+                          {documentoCliente.length > 2 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto hidden group-focus-within:block">
+                              {clients.filter((c: any) => c.documento.startsWith(documentoCliente)).map((c: any) => (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setDocumentoCliente(c.documento);
+                                    setCliente(c.nombre);
+                                    setDireccionCliente(c.direccion || '');
+                                  }}
+                                  className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                                >
+                                  <span className="font-bold">{c.documento}</span> - {c.nombre}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={handleSearchClient}
@@ -663,13 +692,33 @@ export function Ventas({ store }: { store: any }) {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nombre / Razón Social</label>
-                      <input
-                        type="text"
-                        value={cliente}
-                        onChange={(e) => setCliente(e.target.value)}
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 text-base font-bold"
-                        placeholder="Nombre del cliente"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={cliente}
+                          onChange={(e) => setCliente(e.target.value)}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 text-base font-bold"
+                          placeholder="Nombre del cliente"
+                        />
+                        {cliente.length > 2 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                            {clients.filter((c: any) => c.nombre.toLowerCase().includes(cliente.toLowerCase())).map((c: any) => (
+                              <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => {
+                                  setDocumentoCliente(c.documento);
+                                  setCliente(c.nombre);
+                                  setDireccionCliente(c.direccion || '');
+                                }}
+                                className="w-full text-left px-4 py-2 hover:bg-slate-50 text-sm"
+                              >
+                                <span className="font-bold">{c.documento}</span> - {c.nombre}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Dirección (Opcional)</label>

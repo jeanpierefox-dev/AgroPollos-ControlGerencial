@@ -73,7 +73,7 @@ export interface Transaction {
   hembrasIn?: number;
   machosIn?: number;
   costoUnitarioIn?: number;
-  ingresoType?: 'venta_directa' | 'granja'; // For pollos bebes
+  ingresoType?: 'venta_directa' | 'granja' | 'san_fernando'; // For pollos bebes and san fernando
   
   // New fields for INGRESO pollos_bebes
   incubadora?: string;
@@ -82,6 +82,21 @@ export interface Transaction {
   enviadoLaboratorio?: number;
   informeDia?: string;
   saldo?: number;
+
+  // New fields for San Fernando Purchase (Ingreso)
+  pesoJabasLlenas?: number;
+  pesoJabasVacias?: number;
+  pesoPollosMuertos?: number;
+  cantidadPollosMuertos?: number;
+  cantidadJabasLlenas?: number;
+  cantidadJabasVacias?: number;
+  pollosPorJabaSanFernando?: number;
+  netoPeso?: number;
+  cantidadTotalPollos?: number;
+  promedioPolloLima?: number;
+  promedioPolloFinal?: number;
+  promedioJaba?: number;
+  promedioPolloMuerto?: number;
   
   // For VENTA
   cliente?: string;

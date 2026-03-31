@@ -191,7 +191,7 @@ export function useStore() {
       // For INGRESO, we determine type by ingresoType
       if (t.type === 'INGRESO') {
         const isMatch = (type === 'pollos_bebes' && t.ingresoType === 'venta_directa') || 
-                        (type === 'pollos_vivos' && t.ingresoType === 'granja');
+                        (type === 'pollos_vivos' && (t.ingresoType === 'granja' || t.ingresoType === 'san_fernando'));
         if (isMatch) {
           hembras += (t.hembrasIn || 0);
           machos += (t.machosIn || 0);

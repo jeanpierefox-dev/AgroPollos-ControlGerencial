@@ -27,6 +27,15 @@ export function Ingresos({ store }: { store: any }) {
   const [hembras, setHembras] = useState('');
   const [machos, setMachos] = useState('');
   
+  // San Fernando State
+  const [pesoJabasLlenas, setPesoJabasLlenas] = useState('');
+  const [pesoJabasVacias, setPesoJabasVacias] = useState('');
+  const [pesoPollosMuertos, setPesoPollosMuertos] = useState('');
+  const [cantidadPollosMuertos, setCantidadPollosMuertos] = useState('');
+  const [cantidadJabasLlenas, setCantidadJabasLlenas] = useState('');
+  const [cantidadJabasVacias, setCantidadJabasVacias] = useState('');
+  const [pollosPorJabaSanFernando, setPollosPorJabaSanFernando] = useState('');
+  
   // Pollo BB State
   const [incubadora, setIncubadora] = useState('');
   const [totalHI, setTotalHI] = useState('');
@@ -60,29 +69,78 @@ export function Ingresos({ store }: { store: any }) {
     let transactionData: Transaction;
     
     if (activeTab === 'pollos_vivos') {
-      if (!campana || !hembras || !machos || !costoUnitario) return;
-      if (ingresoType === 'granja' && !plantel) return;
+      if (ingresoType === 'san_fernando') {
+        if (!campana || !pesoJabasLlenas || !pesoJabasVacias || !cantidadJabasLlenas || !cantidadJabasVacias || !costoUnitario) return;
+        
+        const pLlenas = parseFloat(pesoJabasLlenas);
+        const pVacias = parseFloat(pesoJabasVacias);
+        const pMuertos = parseFloat(pesoPollosMuertos) || 0;
+        const cMuertos = parseInt(cantidadPollosMuertos) || 0;
+        const cLlenas = parseInt(cantidadJabasLlenas);
+        const cVacias = parseInt(cantidadJabasVacias);
+        const pPorJaba = parseInt(pollosPorJabaSanFernando) || 0;
 
-      const totalCosto = (parseInt(hembras) + parseInt(machos)) * parseFloat(costoUnitario);
+        const netoPeso = pLlenas - pVacias - pMuertos;
+        const cantidadTotalPollos = cLlenas * pPorJaba;
+        const promedioPolloLima = cantidadTotalPollos > 0 ? (pLlenas - pVacias) / (cantidadTotalPollos + cMuertos) : 0;
+        const promedioPolloFinal = (cantidadTotalPollos > 0) ? netoPeso / cantidadTotalPollos : 0;
+        const promedioJaba = cVacias > 0 ? pVacias / cVacias : 0;
+        const promedioPolloMuerto = cMuertos > 0 ? pMuertos / cMuertos : 0;
 
-      transactionData = {
-        id: isEditing || crypto.randomUUID(),
-        date,
-        type: 'INGRESO',
-        productType: 'pollos_vivos',
-        campana,
-        ingresoType,
-        plantel: ingresoType === 'granja' ? plantel : undefined,
-        galponMachos: ingresoType === 'granja' ? galponMachos : undefined,
-        galponHembras: ingresoType === 'granja' ? galponHembras : undefined,
-        galpon: ingresoType === 'granja' ? `M:${galponMachos} | H:${galponHembras}` : 'Venta Directa',
-        hembrasIn: parseInt(hembras),
-        machosIn: parseInt(machos),
-        costoUnitarioIn: parseFloat(costoUnitario),
-        totalCosto,
-        totalVenta: 0,
-        ganancia: 0,
-      };
+        const totalCosto = netoPeso * parseFloat(costoUnitario);
+
+        transactionData = {
+          id: isEditing || crypto.randomUUID(),
+          date,
+          type: 'INGRESO',
+          productType: 'pollos_vivos',
+          campana,
+          ingresoType: 'san_fernando',
+          pesoJabasLlenas: pLlenas,
+          pesoJabasVacias: pVacias,
+          pesoPollosMuertos: pMuertos,
+          cantidadPollosMuertos: cMuertos,
+          cantidadJabasLlenas: cLlenas,
+          cantidadJabasVacias: cVacias,
+          pollosPorJabaSanFernando: pPorJaba,
+          netoPeso,
+          cantidadTotalPollos,
+          promedioPolloLima,
+          promedioPolloFinal,
+          promedioJaba,
+          promedioPolloMuerto,
+          hembrasIn: Math.floor(cantidadTotalPollos / 2), // Approximation if not specified
+          machosIn: Math.ceil(cantidadTotalPollos / 2),   // Approximation if not specified
+          costoUnitarioIn: parseFloat(costoUnitario),
+          totalCosto,
+          totalVenta: 0,
+          ganancia: 0,
+        };
+      } else {
+        if (!campana || !hembras || !machos || !costoUnitario) return;
+        if (ingresoType === 'granja' && !plantel) return;
+
+        const totalCosto = (parseInt(hembras) + parseInt(machos)) * parseFloat(costoUnitario);
+
+        transactionData = {
+          id: isEditing || crypto.randomUUID(),
+          date,
+          type: 'INGRESO',
+          productType: 'pollos_vivos',
+          campana,
+          ingresoType,
+          plantel: ingresoType === 'granja' ? plantel : undefined,
+          galponMachos: ingresoType === 'granja' ? galponMachos : undefined,
+          galponHembras: ingresoType === 'granja' ? galponHembras : undefined,
+          galpon: ingresoType === 'granja' ? `M:${galponMachos} | H:${galponHembras}` : 'Venta Directa',
+          hembrasIn: parseInt(hembras),
+          machosIn: parseInt(machos),
+          costoUnitarioIn: parseFloat(costoUnitario),
+          totalCosto,
+          totalVenta: 0,
+          ganancia: 0,
+        };
+      }
     } else {
       if (!incubadora || !totalHI || !totalNacido || !enviadoLaboratorio || !costoUnitario) return;
       
@@ -129,6 +187,14 @@ export function Ingresos({ store }: { store: any }) {
     setHembras('');
     setMachos('');
     
+    setPesoJabasLlenas('');
+    setPesoJabasVacias('');
+    setPesoPollosMuertos('');
+    setCantidadPollosMuertos('');
+    setCantidadJabasLlenas('');
+    setCantidadJabasVacias('');
+    setPollosPorJabaSanFernando('');
+    
     setIncubadora('');
     setTotalHI('');
     setTotalNacido('');
@@ -153,6 +219,16 @@ export function Ingresos({ store }: { store: any }) {
       setGalponHembras(t.galponHembras || '02');
       setHembras(t.hembrasIn?.toString() || '');
       setMachos(t.machosIn?.toString() || '');
+      
+      if (t.ingresoType === 'san_fernando') {
+        setPesoJabasLlenas(t.pesoJabasLlenas?.toString() || '');
+        setPesoJabasVacias(t.pesoJabasVacias?.toString() || '');
+        setPesoPollosMuertos(t.pesoPollosMuertos?.toString() || '');
+        setCantidadPollosMuertos(t.cantidadPollosMuertos?.toString() || '');
+        setCantidadJabasLlenas(t.cantidadJabasLlenas?.toString() || '');
+        setCantidadJabasVacias(t.cantidadJabasVacias?.toString() || '');
+        setPollosPorJabaSanFernando(t.pollosPorJabaSanFernando?.toString() || '');
+      }
     } else {
       setActiveTab('pollos_bebes');
       setIncubadora(t.incubadora || '');
@@ -237,11 +313,10 @@ export function Ingresos({ store }: { store: any }) {
                     <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Fecha</th>
                     <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Tipo</th>
                     <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Campaña</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Plantel</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Galpón H.</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Hembras</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Galpón M.</th>
-                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Machos</th>
+                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Detalle / Plantel</th>
+                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Cant. Total</th>
+                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Peso Neto</th>
+                    <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Prom. Final</th>
                     <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Costo Total</th>
                     <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs text-right">Acciones</th>
                   </tr>
@@ -271,11 +346,13 @@ export function Ingresos({ store }: { store: any }) {
                         <>
                           <td className="px-6 py-4">
                             <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${
-                              t.ingresoType === 'venta_directa' 
-                                ? 'bg-amber-50 text-amber-700 border-amber-100' 
-                                : 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                              t.ingresoType === 'san_fernando'
+                                ? 'bg-blue-50 text-blue-700 border-blue-100'
+                                : t.ingresoType === 'venta_directa' 
+                                  ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                                  : 'bg-indigo-50 text-indigo-700 border-indigo-100'
                             }`}>
-                              {t.ingresoType === 'venta_directa' ? 'Venta Directa' : 'Granja'}
+                              {t.ingresoType === 'san_fernando' ? 'San Fernando' : t.ingresoType === 'venta_directa' ? 'Venta Directa' : 'Granja'}
                             </span>
                           </td>
                           <td className="px-6 py-4">
@@ -284,22 +361,23 @@ export function Ingresos({ store }: { store: any }) {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-md text-xs font-bold border border-emerald-100">
-                              {t.plantel || '-'}
-                            </span>
+                            {t.ingresoType === 'san_fernando' ? (
+                              <span className="text-xs text-slate-500 italic">Lima - San Fernando</span>
+                            ) : (
+                              <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-md text-xs font-bold border border-emerald-100">
+                                {t.plantel || '-'}
+                              </span>
+                            )}
                           </td>
-                          <td className="px-6 py-4">
-                            <span className="px-2.5 py-1 bg-pink-50 text-pink-700 rounded-md text-xs font-bold border border-pink-100">
-                              {t.galponHembras || '-'}
-                            </span>
+                          <td className="px-6 py-4 font-medium">
+                            {t.ingresoType === 'san_fernando' ? t.cantidadTotalPollos : (t.hembrasIn || 0) + (t.machosIn || 0)}
                           </td>
-                          <td className="px-6 py-4 font-medium">{t.hembrasIn}</td>
-                          <td className="px-6 py-4">
-                            <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-bold border border-blue-100">
-                              {t.galponMachos || '-'}
-                            </span>
+                          <td className="px-6 py-4 font-medium">
+                            {t.ingresoType === 'san_fernando' ? `${t.netoPeso?.toFixed(2)} Kg` : '-'}
                           </td>
-                          <td className="px-6 py-4 font-medium">{t.machosIn}</td>
+                          <td className="px-6 py-4 font-medium">
+                            {t.ingresoType === 'san_fernando' ? `${t.promedioPolloFinal?.toFixed(3)} Kg` : '-'}
+                          </td>
                         </>
                       ) : (
                         <>
@@ -357,11 +435,13 @@ export function Ingresos({ store }: { store: any }) {
                     {activeTab === 'pollos_vivos' ? (
                       <div className="flex gap-2">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${
-                          t.ingresoType === 'venta_directa'
-                            ? 'bg-amber-50 text-amber-700 border-amber-100'
-                            : 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                          t.ingresoType === 'san_fernando'
+                            ? 'bg-blue-50 text-blue-700 border-blue-100'
+                            : t.ingresoType === 'venta_directa'
+                              ? 'bg-amber-50 text-amber-700 border-amber-100'
+                              : 'bg-indigo-50 text-indigo-700 border-indigo-100'
                         }`}>
-                          {t.ingresoType === 'venta_directa' ? 'Venta Directa' : 'Granja'}
+                          {t.ingresoType === 'san_fernando' ? 'San Fernando' : t.ingresoType === 'venta_directa' ? 'Venta Directa' : 'Granja'}
                         </span>
                         <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold border border-emerald-100 uppercase">
                           {t.campana}
@@ -381,20 +461,41 @@ export function Ingresos({ store }: { store: any }) {
                 
                 {activeTab === 'pollos_vivos' ? (
                   <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 mb-4">
-                    <div className="bg-pink-50/50 p-2 rounded-lg border border-pink-100/50">
-                      <div className="flex justify-between items-center mb-1">
-                        <div className="text-[10px] text-pink-600 uppercase font-bold">Hembras</div>
-                        <span className="text-[10px] font-bold bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded">G: {t.galponHembras || '-'}</span>
-                      </div>
-                      <div className="text-sm font-semibold text-slate-700">{t.hembrasIn}</div>
-                    </div>
-                    <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50">
-                      <div className="flex justify-between items-center mb-1">
-                        <div className="text-[10px] text-blue-600 uppercase font-bold">Machos</div>
-                        <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">G: {t.galponMachos || '-'}</span>
-                      </div>
-                      <div className="text-sm font-semibold text-slate-700">{t.machosIn}</div>
-                    </div>
+                    {t.ingresoType === 'san_fernando' ? (
+                      <>
+                        <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50">
+                          <div className="text-[10px] text-blue-600 uppercase font-bold mb-1">Cant. Total</div>
+                          <div className="text-sm font-semibold text-slate-700">{t.cantidadTotalPollos} aves</div>
+                        </div>
+                        <div className="bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50">
+                          <div className="text-[10px] text-emerald-600 uppercase font-bold mb-1">Peso Neto</div>
+                          <div className="text-sm font-semibold text-slate-700">{t.netoPeso?.toFixed(2)} Kg</div>
+                        </div>
+                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 col-span-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] text-slate-500 uppercase font-bold">Promedio Final</span>
+                            <span className="text-sm font-bold text-slate-900">{t.promedioPolloFinal?.toFixed(3)} Kg</span>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="bg-pink-50/50 p-2 rounded-lg border border-pink-100/50">
+                          <div className="flex justify-between items-center mb-1">
+                            <div className="text-[10px] text-pink-600 uppercase font-bold">Hembras</div>
+                            <span className="text-[10px] font-bold bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded">G: {t.galponHembras || '-'}</span>
+                          </div>
+                          <div className="text-sm font-semibold text-slate-700">{t.hembrasIn}</div>
+                        </div>
+                        <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50">
+                          <div className="flex justify-between items-center mb-1">
+                            <div className="text-[10px] text-blue-600 uppercase font-bold">Machos</div>
+                            <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">G: {t.galponMachos || '-'}</span>
+                          </div>
+                          <div className="text-sm font-semibold text-slate-700">{t.machosIn}</div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 mb-4">
@@ -491,14 +592,97 @@ export function Ingresos({ store }: { store: any }) {
                           name="ingresoType"
                           value="venta_directa"
                           checked={ingresoType === 'venta_directa'}
-                          onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa')}
+                          onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
                           className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
                         />
                         <span className="text-sm text-slate-700">Para Venta Directa</span>
                       </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="ingresoType"
+                          value="san_fernando"
+                          checked={ingresoType === 'san_fernando'}
+                          onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
+                          className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                        />
+                        <span className="text-sm text-slate-700">San Fernando (Lima)</span>
+                      </label>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  {ingresoType === 'san_fernando' ? (
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Campaña / Lote San Fernando</label>
+                        <input
+                          type="text"
+                          required
+                          value={campana}
+                          onChange={(e) => setCampana(e.target.value)}
+                          className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base"
+                          placeholder="Ej. SF-LIMA-01"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Jabas Llenas (Kg)</label>
+                          <input type="number" step="0.01" value={pesoJabasLlenas} onChange={(e) => setPesoJabasLlenas(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Jabas Vacías (Kg)</label>
+                          <input type="number" step="0.01" value={pesoJabasVacias} onChange={(e) => setPesoJabasVacias(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Jabas Llenas</label>
+                          <input type="number" value={cantidadJabasLlenas} onChange={(e) => setCantidadJabasLlenas(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Jabas Vacías</label>
+                          <input type="number" value={cantidadJabasVacias} onChange={(e) => setCantidadJabasVacias(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pollos por Jaba</label>
+                          <input type="number" value={pollosPorJabaSanFernando} onChange={(e) => setPollosPorJabaSanFernando(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Pollos Muertos</label>
+                          <input type="number" value={cantidadPollosMuertos} onChange={(e) => setCantidadPollosMuertos(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Pollos Muertos (Kg)</label>
+                        <input type="number" step="0.01" value={pesoPollosMuertos} onChange={(e) => setPesoPollosMuertos(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
+                      </div>
+                      
+                      {pesoJabasLlenas && pesoJabasVacias && cantidadJabasLlenas && pollosPorJabaSanFernando && (
+                        <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 space-y-2">
+                          <div className="flex justify-between text-xs font-bold text-emerald-800">
+                            <span>PESO NETO:</span>
+                            <span>{(parseFloat(pesoJabasLlenas) - parseFloat(pesoJabasVacias) - (parseFloat(pesoPollosMuertos) || 0)).toFixed(2)} Kg</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-bold text-emerald-800">
+                            <span>CANTIDAD TOTAL POLLOS:</span>
+                            <span>{parseInt(cantidadJabasLlenas) * parseInt(pollosPorJabaSanFernando)} aves</span>
+                          </div>
+                          <div className="flex justify-between text-[10px] text-emerald-600">
+                            <span>PROMEDIO LIMA:</span>
+                            <span>{((parseFloat(pesoJabasLlenas) - parseFloat(pesoJabasVacias)) / (parseInt(cantidadJabasLlenas) * parseInt(pollosPorJabaSanFernando) + (parseInt(cantidadPollosMuertos) || 0))).toFixed(3)} Kg</span>
+                          </div>
+                          <div className="flex justify-between text-[10px] text-emerald-600">
+                            <span>PROMEDIO FINAL:</span>
+                            <span>{((parseFloat(pesoJabasLlenas) - parseFloat(pesoJabasVacias) - (parseFloat(pesoPollosMuertos) || 0)) / (parseInt(cantidadJabasLlenas) * parseInt(pollosPorJabaSanFernando))).toFixed(3)} Kg</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-2">Campaña</label>
                       <input
@@ -594,7 +778,9 @@ export function Ingresos({ store }: { store: any }) {
                     </div>
                   </div>
                 </>
-              ) : (
+              )}
+              </>
+            ) : (
                 <>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Número de Incubadora</label>
@@ -760,22 +946,57 @@ export function Ingresos({ store }: { store: any }) {
                 <div className="space-y-2">
                   {printData.productType === 'pollos_vivos' ? (
                     <>
-                      <div className="flex justify-between">
-                        <span className="text-xs font-bold text-slate-500 uppercase">Campaña:</span>
-                        <span className="text-sm font-black text-slate-900">{printData.campana}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs font-bold text-slate-500 uppercase">Plantel:</span>
-                        <span className="text-sm font-black text-slate-900">{printData.plantel || '-'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs font-bold text-slate-500 uppercase">Galpón Machos:</span>
-                        <span className="text-sm font-black text-slate-900">{printData.galponMachos || '-'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-xs font-bold text-slate-500 uppercase">Galpón Hembras:</span>
-                        <span className="text-sm font-black text-slate-900">{printData.galponHembras || '-'}</span>
-                      </div>
+                      {printData.ingresoType === 'san_fernando' ? (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Lote SF:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.campana}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Peso Jabas Llenas:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.pesoJabasLlenas} Kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Peso Jabas Vacías:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.pesoJabasVacias} Kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Peso Neto:</span>
+                            <span className="text-sm font-black text-emerald-700">{printData.netoPeso?.toFixed(2)} Kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Cant. Total Pollos:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.cantidadTotalPollos} aves</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Promedio Lima:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.promedioPolloLima?.toFixed(3)} Kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Promedio Final:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.promedioPolloFinal?.toFixed(3)} Kg</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Campaña:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.campana}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Plantel:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.plantel || '-'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Galpón Machos:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.galponMachos || '-'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Galpón Hembras:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.galponHembras || '-'}</span>
+                          </div>
+                        </>
+                      )}
                     </>
                   ) : (
                     <>

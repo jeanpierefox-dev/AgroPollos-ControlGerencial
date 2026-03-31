@@ -154,8 +154,8 @@ export function Clientes() {
             />
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-gray-50">
               <tr>
                 <th className="text-left p-4 text-sm font-medium text-gray-600">Documento</th>
@@ -208,6 +208,55 @@ export function Clientes() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-4 p-4">
+          {filteredClients.map((client) => (
+            <div key={client.id} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{client.documento}</div>
+                  <div className="font-bold text-slate-800 text-lg">{client.nombre}</div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(client)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(client.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="mb-4">
+                <div className="text-[10px] text-slate-400 uppercase font-bold">Dirección</div>
+                <div className="text-sm font-semibold text-slate-700">{client.direccion || '-'}</div>
+              </div>
+
+              <div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  client.tipo === 'pollos_bebes' ? 'bg-yellow-100 text-yellow-800' :
+                  client.tipo === 'pollos_vivos' ? 'bg-green-100 text-green-800' :
+                  'bg-blue-100 text-blue-800'
+                }`}>
+                  {client.tipo === 'pollos_bebes' ? 'Pollos Bebés' :
+                   client.tipo === 'pollos_vivos' ? 'Pollos Vivos' : 'Ambos'}
+                </span>
+              </div>
+            </div>
+          ))}
+          {filteredClients.length === 0 && (
+            <div className="bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center text-slate-400 italic">
+              No se encontraron clientes.
+            </div>
+          )}
         </div>
       </div>
     </div>
