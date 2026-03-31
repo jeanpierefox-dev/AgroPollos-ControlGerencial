@@ -48,6 +48,15 @@ export function Ventas({ store }: { store: any }) {
   const [calcPollosPorJaba, setCalcPollosPorJaba] = useState('');
   const [calcCantMuertos, setCalcCantMuertos] = useState('');
   const [calcPesoMuertos, setCalcPesoMuertos] = useState('');
+  
+  // San Fernando Sale State
+  const [sfCantLlenas, setSfCantLlenas] = useState('');
+  const [sfPollosPorJaba, setSfPollosPorJaba] = useState('');
+  const [sfPesoLlenas, setSfPesoLlenas] = useState('');
+  const [sfCantVacias, setSfCantVacias] = useState('');
+  const [sfPesoVacias, setSfPesoVacias] = useState('');
+  const [sfCantMuertos, setSfCantMuertos] = useState('');
+  const [sfPesoMuertos, setSfPesoMuertos] = useState('');
 
   const applyCalculator = () => {
     const pLlenas = parseFloat(calcPesoLlenas) || 0;
@@ -280,6 +289,61 @@ export function Ventas({ store }: { store: any }) {
       setError('Seleccione una campaña primero.');
       return;
     }
+    if (tipo === 'SAN_FERNANDO') {
+      if (!sfCantLlenas || !sfPollosPorJaba || !sfPesoLlenas || !sfCantVacias || !sfPesoVacias || !precioKilo) {
+        setError('Complete todos los campos para la venta San Fernando.');
+        return;
+      }
+
+      const cLlenas = parseInt(sfCantLlenas);
+      const pPorJaba = parseInt(sfPollosPorJaba);
+      const pLlenas = parseFloat(sfPesoLlenas);
+      const cVacias = parseInt(sfCantVacias);
+      const pVacias = parseFloat(sfPesoVacias);
+      const cMuertos = parseInt(sfCantMuertos || '0');
+      const pMuertos = parseFloat(sfPesoMuertos || '0');
+      const pVenta = parseFloat(precioKilo);
+
+      const netoPeso = pLlenas - pVacias - pMuertos;
+      const totalPollos = cLlenas * pPorJaba;
+      const subtotal = netoPeso * pVenta;
+
+      const promedioLlenas = (pLlenas - pVacias) / totalPollos;
+      const promedioVacias = cVacias > 0 ? pVacias / cVacias : 0;
+      const promedioMuertos = cMuertos > 0 ? pMuertos / cMuertos : 0;
+
+      setItems([...items, {
+        id: crypto.randomUUID(),
+        tipo: 'SAN_FERNANDO',
+        cantidad: totalPollos,
+        pesoTotal: netoPeso,
+        precioKilo: pVenta,
+        subtotal,
+        jabas: cLlenas,
+        pollosPorJaba: pPorJaba,
+        pesoLlenas: pLlenas,
+        pesoVacias: pVacias,
+        cantVacias: cVacias,
+        cantMuertos: cMuertos,
+        pesoMuertos: pMuertos,
+        promedioLlenas,
+        promedioVacias,
+        promedioMuertos
+      }]);
+
+      // Reset SF fields
+      setSfCantLlenas('');
+      setSfPollosPorJaba('');
+      setSfPesoLlenas('');
+      setSfCantVacias('');
+      setSfPesoVacias('');
+      setSfCantMuertos('');
+      setSfPesoMuertos('');
+      setPrecioKilo('');
+      setError('');
+      return;
+    }
+
     if (!cantidad || !pesoTotal || !precioKilo) {
       setError('Complete todos los campos del ítem.');
       return;
@@ -867,7 +931,44 @@ export function Ventas({ store }: { store: any }) {
                       </div>
                     )}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    {tipo === 'SAN_FERNANDO' ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4 p-4 bg-emerald-50/50 rounded-xl border border-emerald-100">
+                        <div>
+                          <label className="block text-[10px] font-black text-emerald-700 uppercase mb-1 tracking-widest">Total Jabas Llenas</label>
+                          <input type="number" value={sfCantLlenas} onChange={(e) => setSfCantLlenas(e.target.value)} className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black text-emerald-700 uppercase mb-1 tracking-widest">Pollos por Jaba</label>
+                          <input type="number" value={sfPollosPorJaba} onChange={(e) => setSfPollosPorJaba(e.target.value)} className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black text-emerald-700 uppercase mb-1 tracking-widest">Peso Jabas Llenas (Kg)</label>
+                          <input type="number" step="0.01" value={sfPesoLlenas} onChange={(e) => setSfPesoLlenas(e.target.value)} className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0.00" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black text-emerald-700 uppercase mb-1 tracking-widest">Cant. Jabas Vacías</label>
+                          <input type="number" value={sfCantVacias} onChange={(e) => setSfCantVacias(e.target.value)} className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black text-emerald-700 uppercase mb-1 tracking-widest">Peso Jabas Vacías (Kg)</label>
+                          <input type="number" step="0.01" value={sfPesoVacias} onChange={(e) => setSfPesoVacias(e.target.value)} className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0.00" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black text-emerald-700 uppercase mb-1 tracking-widest">Cant. Pollos Muertos</label>
+                          <input type="number" value={sfCantMuertos} onChange={(e) => setSfCantMuertos(e.target.value)} className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black text-emerald-700 uppercase mb-1 tracking-widest">Peso Muertos (Kg)</label>
+                          <input type="number" step="0.01" value={sfPesoMuertos} onChange={(e) => setSfPesoMuertos(e.target.value)} className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0.00" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black text-emerald-700 uppercase mb-1 tracking-widest">Precio Venta (S/ Kg)</label>
+                          <input type="number" step="0.01" value={precioKilo} onChange={(e) => setPrecioKilo(e.target.value)} className="w-full px-3 py-2 border border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold text-emerald-700" placeholder="0.00" />
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                       <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tipo de Pollo</label>
                         <select
@@ -879,6 +980,7 @@ export function Ventas({ store }: { store: any }) {
                           <option value="PRESA">Presa (Macho)</option>
                           <option value="TIPO_HEMBRA">Tipo Hembra</option>
                           <option value="TIPO_MACHO">Tipo Macho</option>
+                          <option value="SAN_FERNANDO">San Fernando</option>
                         </select>
                       </div>
                       <div>
@@ -956,6 +1058,8 @@ export function Ventas({ store }: { store: any }) {
                         </button>
                       </div>
                     </div>
+                  </>
+                )}
                   </div>
                 ) : (
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8">
@@ -1579,50 +1683,87 @@ export function Ventas({ store }: { store: any }) {
                   </div>
                 </div>
 
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-100 border-b-2 border-slate-800">
-                      <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Cant.</th>
-                      <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Tipo de Pollo</th>
-                      <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Sexo</th>
-                      <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Galpón</th>
-                      <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Jabas</th>
-                      <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">P/Jaba</th>
-                      <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Peso Prom. (Kg)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {printData.items?.map((item, index) => {
-                      const sexo = (item.tipo === 'BRASA' || item.tipo === 'TIPO_HEMBRA') ? 'Hembra' : 'Macho';
-                      const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
-                      
-                      // Extraer galpón específico si está disponible en la info de la campaña
-                      let galponEspecifico = '-';
-                      if (printCampanaInfo?.galpon) {
-                        const galpones = printCampanaInfo.galpon.split(' | ');
-                        if (sexo === 'Hembra' && galpones.find(g => g.startsWith('H:'))) {
-                          galponEspecifico = galpones.find(g => g.startsWith('H:'))?.replace('H:', '') || '-';
-                        } else if (sexo === 'Macho' && galpones.find(g => g.startsWith('M:'))) {
-                          galponEspecifico = galpones.find(g => g.startsWith('M:'))?.replace('M:', '') || '-';
-                        } else {
-                          galponEspecifico = printCampanaInfo.galpon;
-                        }
-                      }
-
-                      return (
+                {printData.items?.some(item => item.tipo === 'SAN_FERNANDO') ? (
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 border-b-2 border-slate-800">
+                        <th className="px-4 py-3 font-black uppercase text-[9px] tracking-widest text-slate-600">Cant.</th>
+                        <th className="px-4 py-3 font-black uppercase text-[9px] tracking-widest text-slate-600">Tipo</th>
+                        <th className="px-4 py-3 font-black uppercase text-[9px] tracking-widest text-slate-600">Detalles</th>
+                        <th className="px-4 py-3 font-black uppercase text-[9px] tracking-widest text-slate-600 text-right">Peso Neto</th>
+                        <th className="px-4 py-3 font-black uppercase text-[9px] tracking-widest text-slate-600 text-right">Precio</th>
+                        <th className="px-4 py-3 font-black uppercase text-[9px] tracking-widest text-slate-600 text-right">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {printData.items?.map((item, index) => (
                         <tr key={index} className="bg-white">
-                          <td className="px-6 py-4 text-center font-bold text-sm">{item.cantidad}</td>
-                          <td className="px-6 py-4 font-bold uppercase text-xs">{item.tipo.replace('_', ' ')}</td>
-                          <td className="px-6 py-4 font-bold uppercase text-xs">{sexo}</td>
-                          <td className="px-6 py-4 font-bold uppercase text-xs text-emerald-700">{galponEspecifico}</td>
-                          <td className="px-6 py-4 text-right font-bold text-sm">{item.jabas || 0}</td>
-                          <td className="px-6 py-4 text-right font-bold text-sm">{item.pollosPorJaba || 0}</td>
-                          <td className="px-6 py-4 text-right font-black text-sm">{pesoPromedio}</td>
+                          <td className="px-4 py-4 text-center font-bold text-sm">{item.cantidad}</td>
+                          <td className="px-4 py-4 font-bold uppercase text-xs">{item.tipo.replace('_', ' ')}</td>
+                          <td className="px-4 py-4 font-bold uppercase text-[10px]">
+                            {item.tipo === 'SAN_FERNANDO' ? (
+                              <div className="space-y-1">
+                                <div>Jabas: {item.jabas} (L) / {item.cantVacias} (V)</div>
+                                <div>Muertos: {item.cantMuertos} ({item.pesoMuertos}kg)</div>
+                                <div className="text-slate-500 italic">Prom: {item.promedioLlenas?.toFixed(2)}kg (L) / {item.promedioVacias?.toFixed(2)}kg (V)</div>
+                              </div>
+                            ) : (
+                              <div>{item.jabas || 0} Jabas - {item.pollosPorJaba || 0} P/J</div>
+                            )}
+                          </td>
+                          <td className="px-4 py-4 text-right font-bold text-sm">{item.pesoTotal.toFixed(2)}</td>
+                          <td className="px-4 py-4 text-right font-bold text-sm">{item.precioKilo.toFixed(2)}</td>
+                          <td className="px-4 py-4 text-right font-black text-sm">{item.subtotal.toFixed(2)}</td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 border-b-2 border-slate-800">
+                        <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Cant.</th>
+                        <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Tipo de Pollo</th>
+                        <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Sexo</th>
+                        <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600">Galpón</th>
+                        <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Jabas</th>
+                        <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">P/Jaba</th>
+                        <th className="px-6 py-3 font-black uppercase text-[10px] tracking-widest text-slate-600 text-right">Peso Prom. (Kg)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {printData.items?.map((item, index) => {
+                        const sexo = (item.tipo === 'BRASA' || item.tipo === 'TIPO_HEMBRA') ? 'Hembra' : 'Macho';
+                        const pesoPromedio = item.cantidad > 0 ? (item.pesoTotal / item.cantidad).toFixed(2) : '0.00';
+                        
+                        // Extraer galpón específico si está disponible en la info de la campaña
+                        let galponEspecifico = '-';
+                        if (printCampanaInfo?.galpon) {
+                          const galpones = printCampanaInfo.galpon.split(' | ');
+                          if (sexo === 'Hembra' && galpones.find(g => g.startsWith('H:'))) {
+                            galponEspecifico = galpones.find(g => g.startsWith('H:'))?.replace('H:', '') || '-';
+                          } else if (sexo === 'Macho' && galpones.find(g => g.startsWith('M:'))) {
+                            galponEspecifico = galpones.find(g => g.startsWith('M:'))?.replace('M:', '') || '-';
+                          } else {
+                            galponEspecifico = printCampanaInfo.galpon;
+                          }
+                        }
+
+                        return (
+                          <tr key={index} className="bg-white">
+                            <td className="px-6 py-4 text-center font-bold text-sm">{item.cantidad}</td>
+                            <td className="px-6 py-4 font-bold uppercase text-xs">{item.tipo.replace('_', ' ')}</td>
+                            <td className="px-6 py-4 font-bold uppercase text-xs">{sexo}</td>
+                            <td className="px-6 py-4 font-bold uppercase text-xs text-emerald-700">{galponEspecifico}</td>
+                            <td className="px-6 py-4 text-right font-bold text-sm">{item.jabas || 0}</td>
+                            <td className="px-6 py-4 text-right font-bold text-sm">{item.pollosPorJaba || 0}</td>
+                            <td className="px-6 py-4 text-right font-black text-sm">{pesoPromedio}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
 
               <div className="mt-24 grid grid-cols-2 gap-16 px-16">

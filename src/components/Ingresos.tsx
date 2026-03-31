@@ -72,21 +72,11 @@ export function Ingresos({ store }: { store: any }) {
       if (!campana || !cantidadJabasLlenas || !pollosPorJabaSanFernando || !pesoJabasLlenas || !costoUnitario) return;
 
       const cLlenas = parseInt(cantidadJabasLlenas);
-      const cVacias = parseInt(cantidadJabasVacias || '0');
       const pPorJaba = parseInt(pollosPorJabaSanFernando);
-      const pLlenas = parseFloat(pesoJabasLlenas);
-      const pVacias = parseFloat(pesoJabasVacias || '0');
-      const pMuertos = parseFloat(pesoPollosMuertos || '0');
-      const cMuertos = parseInt(cantidadPollosMuertos || '0');
+      const pTotal = parseFloat(pesoJabasLlenas);
       
       const cantidadTotalPollos = cLlenas * pPorJaba;
-      const netoPeso = pLlenas - pVacias - pMuertos;
-      const promedioPolloLima = pLlenas / cantidadTotalPollos;
-      const promedioPolloFinal = netoPeso / cantidadTotalPollos;
-      const promedioJaba = netoPeso / cLlenas;
-      const promedioPolloMuerto = cMuertos > 0 ? pMuertos / cMuertos : 0;
-      
-      const totalCosto = cantidadTotalPollos * parseFloat(costoUnitario);
+      const totalCosto = pTotal * parseFloat(costoUnitario);
 
       transactionData = {
         id: isEditing || crypto.randomUUID(),
@@ -96,22 +86,14 @@ export function Ingresos({ store }: { store: any }) {
         ingresoType: 'san_fernando',
         campana,
         cantidadJabasLlenas: cLlenas,
-        cantidadJabasVacias: cVacias,
         pollosPorJabaSanFernando: pPorJaba,
+        pesoJabasLlenas: pTotal,
+        netoPeso: pTotal,
         cantidadTotalPollos,
-        pesoJabasLlenas: pLlenas,
-        pesoJabasVacias: pVacias,
-        pesoPollosMuertos: pMuertos,
-        cantidadPollosMuertos: cMuertos,
-        netoPeso,
-        promedioPolloLima,
-        promedioPolloFinal,
-        promedioJaba,
-        promedioPolloMuerto,
         costoUnitarioIn: parseFloat(costoUnitario),
         totalCosto,
         totalVenta: 0,
-        ganancia: 0,
+        ganancia: -totalCosto,
         hembrasIn: Math.floor(cantidadTotalPollos / 2),
         machosIn: Math.ceil(cantidadTotalPollos / 2),
       };
@@ -616,67 +598,26 @@ export function Ingresos({ store }: { store: any }) {
                       <input type="number" required value={cantidadJabasLlenas} onChange={(e) => setCantidadJabasLlenas(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Jabas Vacías</label>
-                      <input type="number" value={cantidadJabasVacias} onChange={(e) => setCantidadJabasVacias(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pollos por Jaba</label>
                       <input type="number" required value={pollosPorJabaSanFernando} onChange={(e) => setPollosPorJabaSanFernando(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Pollos Muertos</label>
-                      <input type="number" value={cantidadPollosMuertos} onChange={(e) => setCantidadPollosMuertos(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
-                    </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Jabas Llenas (Kg)</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Total del Lote (Kg)</label>
                       <input type="number" step="0.01" required value={pesoJabasLlenas} onChange={(e) => setPesoJabasLlenas(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Jabas Vacías (Kg)</label>
-                      <input type="number" step="0.01" value={pesoJabasVacias} onChange={(e) => setPesoJabasVacias(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Precio Unitario (S/)</label>
+                      <input type="number" step="0.01" required value={costoUnitario} onChange={(e) => setCostoUnitario(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Pollos Muertos (Kg)</label>
-                      <input type="number" step="0.01" value={pesoPollosMuertos} onChange={(e) => setPesoPollosMuertos(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
-                    </div>
-                    {cantidadJabasLlenas && pollosPorJabaSanFernando && (
-                      <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex flex-col justify-center">
-                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Total de Pollos:</span>
-                        <span className="text-lg font-black text-emerald-700">
-                          {parseInt(cantidadJabasLlenas) * parseInt(pollosPorJabaSanFernando)} aves
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Resultados Calculados en Tiempo Real */}
-                  {(pesoJabasLlenas || pesoJabasVacias || pesoPollosMuertos) && (
-                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Resultados Calculados</h4>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                        <div className="flex justify-between border-b border-slate-200 pb-1">
-                          <span className="text-slate-500 font-bold uppercase">Peso Neto:</span>
-                          <span className="font-black text-emerald-600">{(parseFloat(pesoJabasLlenas || '0') - parseFloat(pesoJabasVacias || '0') - parseFloat(pesoPollosMuertos || '0')).toFixed(2)} Kg</span>
-                        </div>
-                        <div className="flex justify-between border-b border-slate-200 pb-1">
-                          <span className="text-slate-500 font-bold uppercase">Prom. Lima:</span>
-                          <span className="font-bold text-slate-700">{(parseFloat(pesoJabasLlenas || '0') / (parseInt(cantidadJabasLlenas || '1') * parseInt(pollosPorJabaSanFernando || '1'))).toFixed(3)} Kg</span>
-                        </div>
-                        <div className="flex justify-between border-b border-slate-200 pb-1">
-                          <span className="text-slate-500 font-bold uppercase">Prom. Final:</span>
-                          <span className="font-bold text-slate-700">{((parseFloat(pesoJabasLlenas || '0') - parseFloat(pesoJabasVacias || '0') - parseFloat(pesoPollosMuertos || '0')) / (parseInt(cantidadJabasLlenas || '1') * parseInt(pollosPorJabaSanFernando || '1'))).toFixed(3)} Kg</span>
-                        </div>
-                        <div className="flex justify-between border-b border-slate-200 pb-1">
-                          <span className="text-slate-500 font-bold uppercase">Prom. Jaba:</span>
-                          <span className="font-bold text-slate-700">{((parseFloat(pesoJabasLlenas || '0') - parseFloat(pesoJabasVacias || '0') - parseFloat(pesoPollosMuertos || '0')) / parseInt(cantidadJabasLlenas || '1')).toFixed(2)} Kg</span>
-                        </div>
-                      </div>
+                  {cantidadJabasLlenas && pollosPorJabaSanFernando && (
+                    <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex flex-col justify-center">
+                      <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Total de Pollos:</span>
+                      <span className="text-lg font-black text-emerald-700">
+                        {parseInt(cantidadJabasLlenas) * parseInt(pollosPorJabaSanFernando)} aves
+                      </span>
                     </div>
                   )}
                 </div>

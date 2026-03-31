@@ -1,5 +1,5 @@
 export type TransactionType = 'INGRESO' | 'VENTA' | 'MORTALIDAD';
-export type TipoPollo = 'BRASA' | 'PRESA' | 'TIPO_HEMBRA' | 'TIPO_MACHO';
+export type TipoPollo = 'BRASA' | 'PRESA' | 'TIPO_HEMBRA' | 'TIPO_MACHO' | 'SAN_FERNANDO';
 export type Role = 'admin' | 'vendedor' | 'despachador';
 export type ProductType = 'pollos_bebes' | 'pollos_vivos';
 export type ClientType = 'pollos_bebes' | 'pollos_vivos' | 'ambos';
@@ -30,6 +30,15 @@ export interface SaleItem {
   subtotal: number;
   jabas?: number;
   pollosPorJaba?: number;
+  // New fields for San Fernando Sale
+  pesoLlenas?: number;
+  pesoVacias?: number;
+  cantVacias?: number;
+  cantMuertos?: number;
+  pesoMuertos?: number;
+  promedioLlenas?: number;
+  promedioVacias?: number;
+  promedioMuertos?: number;
 }
 
 export interface AppConfig {
