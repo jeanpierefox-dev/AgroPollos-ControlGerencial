@@ -23,8 +23,16 @@ export function Kardex({ store }: { store: any }) {
       let salidaMachos = 0;
 
       if (t.type === 'INGRESO') {
-        ingresoHembras = t.hembrasIn || 0;
-        ingresoMachos = t.machosIn || 0;
+        if (t.ingresoType === 'san_fernando') {
+          // San Fernando usually comes as a single total, we'll treat it as Machos for now or split it if needed
+          // For simplicity in Kardex, let's assume it's a general stock or we can split it 50/50 if not specified
+          // But the user usually sells them as BRASA or PRESA.
+          // Let's treat San Fernando as a general pool or just add to Machos for now as a placeholder
+          ingresoMachos = t.cantidadTotalPollos || 0;
+        } else {
+          ingresoHembras = t.hembrasIn || 0;
+          ingresoMachos = t.machosIn || 0;
+        }
         saldoHembras += ingresoHembras;
         saldoMachos += ingresoMachos;
       } else if (t.type === 'VENTA' && t.items) {

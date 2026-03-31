@@ -102,6 +102,8 @@ export interface Transaction {
   cliente?: string;
   clientId?: string; // Reference to manual client
   direccionCliente?: string;
+  vehiculo?: string;
+  conductor?: string;
   items?: SaleItem[];
   jabas?: number;
   pollosPorJaba?: number;

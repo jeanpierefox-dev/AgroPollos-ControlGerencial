@@ -54,8 +54,12 @@ export function Reportes({ store }: { store: any }) {
       
       if (t.type === 'INGRESO') {
         stats[groupKey].ingresos += t.totalCosto || 0;
-        stats[groupKey].hembras += t.hembrasIn || 0;
-        stats[groupKey].machos += t.machosIn || 0;
+        if (t.ingresoType === 'san_fernando') {
+          stats[groupKey].machos += t.cantidadTotalPollos || 0;
+        } else {
+          stats[groupKey].hembras += t.hembrasIn || 0;
+          stats[groupKey].machos += t.machosIn || 0;
+        }
       } else if (t.type === 'VENTA') {
         stats[groupKey].ventas += t.totalVenta || 0;
         stats[groupKey].costos += t.totalCosto || 0;

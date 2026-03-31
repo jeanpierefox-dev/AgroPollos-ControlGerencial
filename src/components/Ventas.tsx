@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Transaction, SaleItem, TipoPollo } from '../types';
 import { format } from 'date-fns';
-import { Plus, Trash2, ReceiptText, Printer, Pencil, Search, Loader2, X } from 'lucide-react';
+import { Plus, Trash2, ReceiptText, Printer, Pencil, Search, Loader2, X, Calculator } from 'lucide-react';
 import { Logo } from './Logo';
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
@@ -26,6 +26,8 @@ export function Ventas({ store }: { store: any }) {
   const [cliente, setCliente] = useState('');
   const [documentoCliente, setDocumentoCliente] = useState('');
   const [direccionCliente, setDireccionCliente] = useState('');
+  const [vehiculo, setVehiculo] = useState('');
+  const [conductor, setConductor] = useState('');
   const [isSearchingClient, setIsSearchingClient] = useState(false);
   const [campana, setCampana] = useState('');
   
@@ -37,6 +39,35 @@ export function Ventas({ store }: { store: any }) {
   const [precioKilo, setPrecioKilo] = useState('');
   const [itemJabas, setItemJabas] = useState('');
   const [itemPollosPorJaba, setItemPollosPorJaba] = useState('');
+  const [showCalculator, setShowCalculator] = useState(false);
+  
+  // Calculator states
+  const [calcPesoLlenas, setCalcPesoLlenas] = useState('');
+  const [calcPesoVacias, setCalcPesoVacias] = useState('');
+  const [calcCantLlenas, setCalcCantLlenas] = useState('');
+  const [calcPollosPorJaba, setCalcPollosPorJaba] = useState('');
+  const [calcCantMuertos, setCalcCantMuertos] = useState('');
+  const [calcPesoMuertos, setCalcPesoMuertos] = useState('');
+
+  const applyCalculator = () => {
+    const pLlenas = parseFloat(calcPesoLlenas) || 0;
+    const pVacias = parseFloat(calcPesoVacias) || 0;
+    const pMuertos = parseFloat(calcPesoMuertos) || 0;
+    const cLlenas = parseInt(calcCantLlenas) || 0;
+    const pPorJaba = parseInt(calcPollosPorJaba) || 0;
+    const cMuertos = parseInt(calcCantMuertos) || 0;
+
+    const netoPeso = pLlenas - pVacias - pMuertos;
+    const cantidadTotal = cLlenas * pPorJaba;
+
+    if (netoPeso > 0) setPesoTotal(netoPeso.toFixed(2));
+    if (cantidadTotal > 0) setCantidad(cantidadTotal.toString());
+    
+    setItemJabas(calcCantLlenas);
+    setItemPollosPorJaba(calcPollosPorJaba);
+    
+    setShowCalculator(false);
+  };
   const [costoUnitarioVenta, setCostoUnitarioVenta] = useState('');
   
   // Pollos Bebes State
@@ -355,6 +386,8 @@ export function Ventas({ store }: { store: any }) {
       ...(productType === 'pollos_vivos' && { campana }),
       cliente: documentoCliente ? `${documentoCliente} - ${cliente}` : cliente,
       direccionCliente,
+      vehiculo,
+      conductor,
       items: finalItems,
       totalCosto,
       totalVenta,
@@ -386,6 +419,8 @@ export function Ventas({ store }: { store: any }) {
     setCliente('');
     setDocumentoCliente('');
     setDireccionCliente('');
+    setVehiculo('');
+    setConductor('');
     setCostoUnitarioVenta('');
     setIncubadora('');
     setCajaPorAve('');
@@ -417,6 +452,8 @@ export function Ventas({ store }: { store: any }) {
     }
     
     setDireccionCliente(t.direccionCliente || '');
+    setVehiculo(t.vehiculo || '');
+    setConductor(t.conductor || '');
     setItems(t.items || []);
     
     if (t.productType === 'pollos_bebes') {
@@ -739,6 +776,29 @@ export function Ventas({ store }: { store: any }) {
                         placeholder="Dirección del cliente"
                       />
                     </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Vehículo (Placa)</label>
+                        <input
+                          type="text"
+                          value={vehiculo}
+                          onChange={(e) => setVehiculo(e.target.value)}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 text-base uppercase font-bold"
+                          placeholder="ABC-123"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Conductor</label>
+                        <input
+                          type="text"
+                          value={conductor}
+                          onChange={(e) => setConductor(e.target.value)}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 text-base font-bold"
+                          placeholder="Nombre del conductor"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -761,9 +821,53 @@ export function Ventas({ store }: { store: any }) {
 
                 {productType === 'pollos_vivos' ? (
                   <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8">
-                    <h4 className="text-sm font-bold text-slate-800 uppercase tracking-widest mb-4">Agregar Ítem</h4>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Agregar Ítem</h4>
+                      <button 
+                        onClick={() => setShowCalculator(!showCalculator)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${showCalculator ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white text-emerald-600 border border-emerald-200 shadow-sm hover:shadow-md'}`}
+                      >
+                        <Calculator size={14} />
+                        {showCalculator ? 'Cerrar Calculadora' : 'Calculadora de Pesaje'}
+                      </button>
+                    </div>
+
+                    {showCalculator && (
+                      <div className="mb-6 p-4 bg-white rounded-xl border-2 border-emerald-100 shadow-inner space-y-4 animate-in slide-in-from-top-2 duration-200">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Peso Jabas Llenas (Kg)</label>
+                            <input type="number" step="0.01" value={calcPesoLlenas} onChange={(e) => setCalcPesoLlenas(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0.00" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Peso Jabas Vacías (Kg)</label>
+                            <input type="number" step="0.01" value={calcPesoVacias} onChange={(e) => setCalcPesoVacias(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0.00" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Cant. Jabas Llenas</label>
+                            <input type="number" value={calcCantLlenas} onChange={(e) => setCalcCantLlenas(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Pollos por Jaba</label>
+                            <input type="number" value={calcPollosPorJaba} onChange={(e) => setCalcPollosPorJaba(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Pollos Muertos</label>
+                            <input type="number" value={calcCantMuertos} onChange={(e) => setCalcCantMuertos(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0" />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Peso Muertos (Kg)</label>
+                            <input type="number" step="0.01" value={calcPesoMuertos} onChange={(e) => setCalcPesoMuertos(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm font-bold" placeholder="0.00" />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-3 pt-2">
+                          <button onClick={() => { setCalcPesoLlenas(''); setCalcPesoVacias(''); setCalcCantLlenas(''); setCalcPollosPorJaba(''); setCalcCantMuertos(''); setCalcPesoMuertos(''); }} className="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-slate-700">Limpiar</button>
+                          <button onClick={applyCalculator} className="px-6 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-md hover:bg-emerald-700 transition-all">Aplicar Cálculos</button>
+                        </div>
+                      </div>
+                    )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                       <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tipo de Pollo</label>
                         <select
@@ -1838,6 +1942,14 @@ export function Ventas({ store }: { store: any }) {
                     <div className="flex justify-between border-b border-slate-200 pb-2">
                       <span className="text-xs font-bold text-slate-500 uppercase">Motivo:</span>
                       <span className="text-sm font-black text-slate-900">{printData.productType === 'pollos_bebes' ? 'Crianza' : 'Faenamiento / Consumo'}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200 pb-2">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Vehículo:</span>
+                      <span className="text-sm font-black text-slate-900">{printData.vehiculo || '-'}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200 pb-2">
+                      <span className="text-xs font-bold text-slate-500 uppercase">Conductor:</span>
+                      <span className="text-sm font-black text-slate-900">{printData.conductor || '-'}</span>
                     </div>
                   </div>
                 </div>

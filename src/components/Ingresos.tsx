@@ -586,8 +586,8 @@ export function Ingresos({ store }: { store: any }) {
                 <>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Tipo de Ingreso</label>
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-200 sm:border-none sm:bg-transparent sm:p-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all cursor-pointer ${ingresoType === 'granja' ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}>
                         <input
                           type="radio"
                           name="ingresoType"
@@ -596,29 +596,38 @@ export function Ingresos({ store }: { store: any }) {
                           onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
                           className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
                         />
-                        <span className="text-sm font-bold text-slate-700">A Granja (Crianza)</span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-black text-slate-800 uppercase tracking-tight">Granja</span>
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Crianza Propia</span>
+                        </div>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-200 sm:border-none sm:bg-transparent sm:p-0">
+                      <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all cursor-pointer ${ingresoType === 'venta_directa' ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}>
                         <input
                           type="radio"
                           name="ingresoType"
                           value="venta_directa"
                           checked={ingresoType === 'venta_directa'}
                           onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
-                          className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+                          className="w-5 h-5 text-amber-600 focus:ring-amber-500"
                         />
-                        <span className="text-sm font-bold text-slate-700">Venta Directa</span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-black text-slate-800 uppercase tracking-tight">Venta Directa</span>
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Compra y Venta</span>
+                        </div>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-200 sm:border-none sm:bg-transparent sm:p-0">
+                      <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all cursor-pointer ${ingresoType === 'san_fernando' ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}>
                         <input
                           type="radio"
                           name="ingresoType"
                           value="san_fernando"
                           checked={ingresoType === 'san_fernando'}
                           onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
-                          className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+                          className="w-5 h-5 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className="text-sm font-bold text-slate-700">San Fernando (Lima)</span>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-black text-slate-800 uppercase tracking-tight">San Fernando</span>
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Lima - Pesaje</span>
+                        </div>
                       </label>
                     </div>
                   </div>
