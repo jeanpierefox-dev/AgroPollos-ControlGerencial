@@ -20,7 +20,7 @@ export function Ingresos({ store }: { store: any }) {
   
   // Pollo Vivo State
   const [campana, setCampana] = useState('');
-  const [ingresoType, setIngresoType] = useState<'venta_directa' | 'granja'>('granja');
+  const [ingresoType, setIngresoType] = useState<'venta_directa' | 'granja' | 'san_fernando'>('granja');
   const [plantel, setPlantel] = useState('EVP-01');
   const [galponMachos, setGalponMachos] = useState('01');
   const [galponHembras, setGalponHembras] = useState('02');
@@ -433,7 +433,7 @@ export function Ingresos({ store }: { store: any }) {
                       {format(new Date(t.date), 'dd/MM/yyyy')}
                     </div>
                     {activeTab === 'pollos_vivos' ? (
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${
                           t.ingresoType === 'san_fernando'
                             ? 'bg-blue-50 text-blue-700 border-blue-100'
@@ -454,66 +454,78 @@ export function Ingresos({ store }: { store: any }) {
                     )}
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-slate-500 mb-1">Costo Total</div>
-                    <div className="text-lg font-bold text-slate-900">S/ {t.totalCosto.toFixed(2)}</div>
+                    <div className="text-xs text-slate-500 mb-1 uppercase font-bold">Costo Total</div>
+                    <div className="text-lg font-black text-slate-900">S/ {t.totalCosto.toFixed(2)}</div>
                   </div>
                 </div>
                 
                 {activeTab === 'pollos_vivos' ? (
-                  <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 mb-4">
+                  <div className="space-y-3 mb-4">
                     {t.ingresoType === 'san_fernando' ? (
                       <>
-                        <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50">
-                          <div className="text-[10px] text-blue-600 uppercase font-bold mb-1">Cant. Total</div>
-                          <div className="text-sm font-semibold text-slate-700">{t.cantidadTotalPollos} aves</div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50">
+                            <div className="text-[10px] text-blue-600 uppercase font-bold mb-1">Cant. Total</div>
+                            <div className="text-sm font-bold text-slate-700">{t.cantidadTotalPollos} aves</div>
+                          </div>
+                          <div className="bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50">
+                            <div className="text-[10px] text-emerald-600 uppercase font-bold mb-1">Peso Neto</div>
+                            <div className="text-sm font-bold text-slate-700">{t.netoPeso?.toFixed(2)} Kg</div>
+                          </div>
                         </div>
-                        <div className="bg-emerald-50/50 p-2 rounded-lg border border-emerald-100/50">
-                          <div className="text-[10px] text-emerald-600 uppercase font-bold mb-1">Peso Neto</div>
-                          <div className="text-sm font-semibold text-slate-700">{t.netoPeso?.toFixed(2)} Kg</div>
-                        </div>
-                        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 col-span-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[10px] text-slate-500 uppercase font-bold">Promedio Final</span>
-                            <span className="text-sm font-bold text-slate-900">{t.promedioPolloFinal?.toFixed(3)} Kg</span>
+                        
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                          <div className="grid grid-cols-2 gap-y-2 text-[10px]">
+                            <div className="text-slate-500 font-bold uppercase">Prom. Final:</div>
+                            <div className="text-right font-black text-slate-900">{t.promedioPolloFinal?.toFixed(3)} Kg</div>
+                            
+                            <div className="text-slate-500 font-bold uppercase">Prom. Lima:</div>
+                            <div className="text-right font-bold text-slate-700">{t.promedioPolloLima?.toFixed(3)} Kg</div>
+                            
+                            <div className="text-slate-500 font-bold uppercase">Cant. Muertos:</div>
+                            <div className="text-right font-bold text-red-600">{t.cantidadPollosMuertos} aves</div>
+                            
+                            <div className="text-slate-500 font-bold uppercase">Jabas Llenas:</div>
+                            <div className="text-right font-bold text-slate-700">{t.cantidadJabasLlenas}</div>
                           </div>
                         </div>
                       </>
                     ) : (
-                      <>
+                      <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50">
                         <div className="bg-pink-50/50 p-2 rounded-lg border border-pink-100/50">
                           <div className="flex justify-between items-center mb-1">
                             <div className="text-[10px] text-pink-600 uppercase font-bold">Hembras</div>
                             <span className="text-[10px] font-bold bg-pink-100 text-pink-700 px-1.5 py-0.5 rounded">G: {t.galponHembras || '-'}</span>
                           </div>
-                          <div className="text-sm font-semibold text-slate-700">{t.hembrasIn}</div>
+                          <div className="text-sm font-bold text-slate-700">{t.hembrasIn}</div>
                         </div>
                         <div className="bg-blue-50/50 p-2 rounded-lg border border-blue-100/50">
                           <div className="flex justify-between items-center mb-1">
                             <div className="text-[10px] text-blue-600 uppercase font-bold">Machos</div>
                             <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">G: {t.galponMachos || '-'}</span>
                           </div>
-                          <div className="text-sm font-semibold text-slate-700">{t.machosIn}</div>
+                          <div className="text-sm font-bold text-slate-700">{t.machosIn}</div>
                         </div>
-                      </>
+                      </div>
                     )}
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50 mb-4">
                     <div>
                       <div className="text-[10px] text-slate-400 uppercase font-bold">Nacidos</div>
-                      <div className="text-sm font-semibold text-emerald-600">{t.totalNacido}</div>
+                      <div className="text-sm font-bold text-emerald-600">{t.totalNacido}</div>
                     </div>
                     <div>
                       <div className="text-[10px] text-slate-400 uppercase font-bold">A Laboratorio</div>
-                      <div className="text-sm font-semibold text-amber-600">{t.enviadoLaboratorio}</div>
+                      <div className="text-sm font-bold text-amber-600">{t.enviadoLaboratorio}</div>
                     </div>
                     <div>
                       <div className="text-[10px] text-slate-400 uppercase font-bold">Saldo</div>
-                      <div className="text-sm font-bold text-slate-900">{t.saldo}</div>
+                      <div className="text-sm font-black text-slate-900">{t.saldo}</div>
                     </div>
                     <div>
                       <div className="text-[10px] text-slate-400 uppercase font-bold">Costo Unit.</div>
-                      <div className="text-sm font-semibold text-slate-700">S/ {t.costoUnitarioIn?.toFixed(2)}</div>
+                      <div className="text-sm font-bold text-slate-700">S/ {t.costoUnitarioIn?.toFixed(2)}</div>
                     </div>
                   </div>
                 )}
@@ -574,39 +586,39 @@ export function Ingresos({ store }: { store: any }) {
                 <>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Tipo de Ingreso</label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-200 sm:border-none sm:bg-transparent sm:p-0">
                         <input
                           type="radio"
                           name="ingresoType"
                           value="granja"
                           checked={ingresoType === 'granja'}
-                          onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa')}
-                          className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                          onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
+                          className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
                         />
-                        <span className="text-sm text-slate-700">A Granja (Crianza)</span>
+                        <span className="text-sm font-bold text-slate-700">A Granja (Crianza)</span>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-200 sm:border-none sm:bg-transparent sm:p-0">
                         <input
                           type="radio"
                           name="ingresoType"
                           value="venta_directa"
                           checked={ingresoType === 'venta_directa'}
                           onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
-                          className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                          className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
                         />
-                        <span className="text-sm text-slate-700">Para Venta Directa</span>
+                        <span className="text-sm font-bold text-slate-700">Venta Directa</span>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-200 sm:border-none sm:bg-transparent sm:p-0">
                         <input
                           type="radio"
                           name="ingresoType"
                           value="san_fernando"
                           checked={ingresoType === 'san_fernando'}
                           onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
-                          className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                          className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
                         />
-                        <span className="text-sm text-slate-700">San Fernando (Lima)</span>
+                        <span className="text-sm font-bold text-slate-700">San Fernando (Lima)</span>
                       </label>
                     </div>
                   </div>
@@ -624,7 +636,7 @@ export function Ingresos({ store }: { store: any }) {
                           placeholder="Ej. SF-LIMA-01"
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Jabas Llenas (Kg)</label>
                           <input type="number" step="0.01" value={pesoJabasLlenas} onChange={(e) => setPesoJabasLlenas(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
@@ -634,7 +646,7 @@ export function Ingresos({ store }: { store: any }) {
                           <input type="number" step="0.01" value={pesoJabasVacias} onChange={(e) => setPesoJabasVacias(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Jabas Llenas</label>
                           <input type="number" value={cantidadJabasLlenas} onChange={(e) => setCantidadJabasLlenas(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
@@ -644,7 +656,7 @@ export function Ingresos({ store }: { store: any }) {
                           <input type="number" value={cantidadJabasVacias} onChange={(e) => setCantidadJabasVacias(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pollos por Jaba</label>
                           <input type="number" value={pollosPorJabaSanFernando} onChange={(e) => setPollosPorJabaSanFernando(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
@@ -676,6 +688,14 @@ export function Ingresos({ store }: { store: any }) {
                           <div className="flex justify-between text-[10px] text-emerald-600">
                             <span>PROMEDIO FINAL:</span>
                             <span>{((parseFloat(pesoJabasLlenas) - parseFloat(pesoJabasVacias) - (parseFloat(pesoPollosMuertos) || 0)) / (parseInt(cantidadJabasLlenas) * parseInt(pollosPorJabaSanFernando))).toFixed(3)} Kg</span>
+                          </div>
+                          <div className="flex justify-between text-[10px] text-emerald-600">
+                            <span>PROMEDIO JABA:</span>
+                            <span>{(parseFloat(pesoJabasVacias) / parseInt(cantidadJabasLlenas)).toFixed(2)} Kg</span>
+                          </div>
+                          <div className="flex justify-between text-[10px] text-emerald-600">
+                            <span>PROMEDIO POLLO MUERTO:</span>
+                            <span>{parseInt(cantidadPollosMuertos) > 0 ? (parseFloat(pesoPollosMuertos) / parseInt(cantidadPollosMuertos)).toFixed(2) : '0.00'} Kg</span>
                           </div>
                         </div>
                       )}
@@ -976,6 +996,14 @@ export function Ingresos({ store }: { store: any }) {
                             <span className="text-xs font-bold text-slate-500 uppercase">Promedio Final:</span>
                             <span className="text-sm font-black text-slate-900">{printData.promedioPolloFinal?.toFixed(3)} Kg</span>
                           </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Promedio Jaba:</span>
+                            <span className="text-sm font-black text-slate-900">{printData.promedioJaba?.toFixed(2)} Kg</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-bold text-slate-500 uppercase">Promedio Pollo Muerto:</span>
+                            <span className="text-sm font-black text-red-600">{printData.promedioPolloMuerto?.toFixed(2)} Kg</span>
+                          </div>
                         </>
                       ) : (
                         <>
@@ -1049,7 +1077,7 @@ export function Ingresos({ store }: { store: any }) {
               </div>
             </div>
 
-            {printData.productType === 'pollos_vivos' && (
+            {printData.productType === 'pollos_vivos' && printData.ingresoType !== 'san_fernando' && (
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-100 border-b-2 border-slate-800">
@@ -1079,6 +1107,38 @@ export function Ingresos({ store }: { store: any }) {
                   </tr>
                 </tfoot>
               </table>
+            )}
+
+            {printData.productType === 'pollos_vivos' && printData.ingresoType === 'san_fernando' && (
+              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Resumen de Pesaje San Fernando</h3>
+                <div className="grid grid-cols-2 gap-x-12 gap-y-4">
+                  <div className="flex justify-between border-b border-slate-200 pb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Cantidad Total:</span>
+                    <span className="text-sm font-black text-slate-900">{printData.cantidadTotalPollos} aves</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-200 pb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Peso Neto:</span>
+                    <span className="text-sm font-black text-emerald-700">{printData.netoPeso?.toFixed(2)} Kg</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-200 pb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Peso Jabas Llenas:</span>
+                    <span className="text-sm font-black text-slate-900">{printData.pesoJabasLlenas?.toFixed(2)} Kg</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-200 pb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Peso Jabas Vacías:</span>
+                    <span className="text-sm font-black text-slate-900">{printData.pesoJabasVacias?.toFixed(2)} Kg</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-200 pb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Pollos Muertos:</span>
+                    <span className="text-sm font-black text-red-600">{printData.cantidadPollosMuertos} aves ({printData.pesoPollosMuertos?.toFixed(2)} Kg)</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-200 pb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase">Jabas Llenas/Vacías:</span>
+                    <span className="text-sm font-black text-slate-900">{printData.cantidadJabasLlenas} / {printData.cantidadJabasVacias}</span>
+                  </div>
+                </div>
+              </div>
             )}
 
             <div className="mt-24 mb-12 flex justify-between px-16">

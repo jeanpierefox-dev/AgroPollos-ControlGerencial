@@ -37,7 +37,7 @@ export default function App() {
     if (currentUser.role === 'despachador' && currentView !== 'ventas') {
       return <div className="p-8 text-center text-slate-500">No tienes permisos para acceder a esta sección.</div>;
     }
-    if (currentUser.role === 'vendedor' && !['dashboard', 'ventas', 'clientes'].includes(currentView)) {
+    if (currentUser.role === 'vendedor' && !['dashboard', 'ventas', 'clientes', 'ingresos'].includes(currentView)) {
       return <div className="p-8 text-center text-slate-500">No tienes permisos para acceder a esta sección.</div>;
     }
 
@@ -47,7 +47,7 @@ export default function App() {
       case 'dashboard':
         return <Dashboard store={store} />;
       case 'clientes':
-        return <Clientes />;
+        return <Clientes store={store} />;
       case 'ingresos':
         return <Ingresos store={store} />;
       case 'mortalidad':

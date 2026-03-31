@@ -17,11 +17,12 @@ export function TopNav({ currentView, setCurrentView, store }: TopNavProps) {
   const menuItems = [
     { id: 'home', label: 'Inicio', icon: Home, roles: ['admin', 'vendedor'] },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'vendedor'] },
-    { id: 'ingresos', label: 'Ingreso Crianza', icon: ArrowDownToLine, roles: ['admin'] },
+    { id: 'ingresos', label: 'Ingreso Crianza', icon: ArrowDownToLine, roles: ['admin', 'vendedor'] },
     { id: 'mortalidad', label: 'Mortalidad', icon: Skull, roles: ['admin'] },
     { id: 'ventas', label: 'Venta de Pollos', icon: ArrowUpFromLine, roles: ['admin', 'vendedor', 'despachador'] },
     { id: 'kardex', label: 'Kardex', icon: FileText, roles: ['admin'] },
     { id: 'reportes', label: 'Reportes', icon: BarChart3, roles: ['admin'] },
+    { id: 'clientes', label: 'Clientes', icon: Users, roles: ['admin', 'vendedor'] },
     { id: 'usuarios', label: 'Usuarios', icon: Users, roles: ['admin'] },
     { id: 'configuracion', label: 'Configuración', icon: Settings, roles: ['admin'] },
   ];
@@ -49,14 +50,34 @@ export function TopNav({ currentView, setCurrentView, store }: TopNavProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <button onClick={() => handleNavClick('home')} className="flex-shrink-0 flex items-center gap-3 hover:opacity-80 transition-opacity">
-              {appConfig.logo ? (
-                <img src={appConfig.logo} alt="Logo" className="w-8 h-8 object-contain rounded bg-white p-0.5" />
-              ) : (
-                <Logo className="w-8 h-8 text-emerald-400" iconSize={24} />
-              )}
-              <span className="font-bold text-xl tracking-tight">{appConfig.appName}</span>
-            </button>
+            <div className="flex items-center gap-8">
+              <button onClick={() => handleNavClick('home')} className="flex-shrink-0 flex items-center gap-3 hover:opacity-80 transition-opacity">
+                {appConfig.logo ? (
+                  <img src={appConfig.logo} alt="Logo" className="w-8 h-8 object-contain rounded bg-white p-0.5" />
+                ) : (
+                  <Logo className="w-8 h-8 text-emerald-400" iconSize={24} />
+                )}
+                <span className="font-bold text-xl tracking-tight">{appConfig.appName}</span>
+              </button>
+
+              {/* Desktop Menu */}
+              <nav className="hidden lg:flex items-center gap-1">
+                {visibleMenuItems.map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setCurrentView(item.id)}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
+                      currentView === item.id 
+                        ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-900/20' 
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    }`}
+                  >
+                    <item.icon size={16} />
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
 
             {/* User & Actions */}
             <div className="flex items-center gap-4">
@@ -68,9 +89,39 @@ export function TopNav({ currentView, setCurrentView, store }: TopNavProps) {
                 <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline-block">Salir</span>
                 <LogOut size={18} />
               </button>
+              
+              {/* Mobile Menu Toggle */}
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden bg-slate-800 border-t border-slate-700 animate-in slide-in-from-top duration-200">
+            <div className="px-4 py-4 space-y-1">
+              {visibleMenuItems.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavClick(item.id)}
+                  className={`w-full px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-3 ${
+                    currentView === item.id 
+                      ? 'bg-emerald-600 text-white' 
+                      : 'text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  <item.icon size={20} />
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Reset Confirmation Modal */}

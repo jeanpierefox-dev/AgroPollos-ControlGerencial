@@ -5,11 +5,12 @@ import { User } from '../types';
 export function Home({ setActiveTab, currentUser }: { setActiveTab: (tab: string) => void, currentUser: User | null }) {
   const modules = [
     { id: 'dashboard', title: 'Resumen Gerencial', desc: 'Indicadores y KPIs', icon: PieChart, color: 'text-blue-600', bg: 'bg-blue-50', roles: ['admin', 'vendedor'] },
-    { id: 'ingresos', title: 'Ingreso de Lotes', desc: 'Registro de pollos bebés', icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-50', roles: ['admin'] },
+    { id: 'ingresos', title: 'Ingreso de Lotes', desc: 'Registro de lotes y compras', icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-50', roles: ['admin', 'vendedor'] },
     { id: 'ventas', title: 'Ventas y Despachos', desc: 'Facturación y guías', icon: ShoppingCart, color: 'text-indigo-600', bg: 'bg-indigo-50', roles: ['admin', 'vendedor', 'despachador'] },
     { id: 'mortalidad', title: 'Control de Mortalidad', desc: 'Registro de bajas', icon: Skull, color: 'text-red-600', bg: 'bg-red-50', roles: ['admin'] },
     { id: 'kardex', title: 'Kardex de Inventario', desc: 'Control de existencias', icon: FileText, color: 'text-amber-600', bg: 'bg-amber-50', roles: ['admin'] },
     { id: 'reportes', title: 'Reportes Financieros', desc: 'Análisis de rentabilidad', icon: TrendingUp, color: 'text-purple-600', bg: 'bg-purple-50', roles: ['admin'] },
+    { id: 'clientes', title: 'Base de Datos Clientes', desc: 'Gestión de clientes', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50', roles: ['admin', 'vendedor'] },
     { id: 'usuarios', title: 'Usuarios', desc: 'Gestión de accesos', icon: Users, color: 'text-slate-600', bg: 'bg-slate-100', roles: ['admin'] },
     { id: 'configuracion', title: 'Configuración', desc: 'Ajustes del sistema', icon: Settings, color: 'text-slate-600', bg: 'bg-slate-100', roles: ['admin'] },
   ];

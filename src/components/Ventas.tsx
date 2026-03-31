@@ -67,6 +67,15 @@ export function Ventas({ store }: { store: any }) {
     setError('');
     
     try {
+      // Intento 0: Buscar en base de datos local
+      const localClient = clients.find((c: any) => c.documento === documentoCliente);
+      if (localClient) {
+        setCliente(localClient.nombre);
+        setDireccionCliente(localClient.direccion);
+        setIsSearchingClient(false);
+        return;
+      }
+
       const type = documentoCliente.length === 8 ? 'dni' : 'ruc';
       
       if (type !== 'dni' && type !== 'ruc' && documentoCliente.length !== 11) {
@@ -660,8 +669,8 @@ export function Ventas({ store }: { store: any }) {
                             className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 text-base"
                             placeholder="Ingrese DNI o RUC"
                           />
-                          {documentoCliente.length > 2 && (
-                            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto hidden group-focus-within:block">
+                          {documentoCliente.length > 2 && clients.filter((c: any) => c.documento.startsWith(documentoCliente)).length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
                               {clients.filter((c: any) => c.documento.startsWith(documentoCliente)).map((c: any) => (
                                 <button
                                   key={c.id}
@@ -700,7 +709,7 @@ export function Ventas({ store }: { store: any }) {
                           className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 text-base font-bold"
                           placeholder="Nombre del cliente"
                         />
-                        {cliente.length > 2 && (
+                        {cliente.length > 2 && clients.filter((c: any) => c.nombre.toLowerCase().includes(cliente.toLowerCase())).length > 0 && (
                           <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
                             {clients.filter((c: any) => c.nombre.toLowerCase().includes(cliente.toLowerCase())).map((c: any) => (
                               <button
