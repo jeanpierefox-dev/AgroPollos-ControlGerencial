@@ -7,7 +7,7 @@ import { Logo } from './Logo';
 export function Ingresos({ store }: { store: any }) {
   const { transactions, appConfig, addTransaction, updateTransaction, deleteTransaction } = store;
   
-  const [activeTab, setActiveTab] = useState<'pollos_bebes' | 'pollos_vivos'>('pollos_bebes');
+  const [activeTab, setActiveTab] = useState<'pollos_bebes' | 'pollos_vivos' | 'san_fernando'>('pollos_bebes');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState<string | null>(null);
@@ -68,79 +68,77 @@ export function Ingresos({ store }: { store: any }) {
     
     let transactionData: Transaction;
     
-    if (activeTab === 'pollos_vivos') {
-      if (ingresoType === 'san_fernando') {
-        if (!campana || !pesoJabasLlenas || !pesoJabasVacias || !cantidadJabasLlenas || !cantidadJabasVacias || !costoUnitario) return;
-        
-        const pLlenas = parseFloat(pesoJabasLlenas);
-        const pVacias = parseFloat(pesoJabasVacias);
-        const pMuertos = parseFloat(pesoPollosMuertos) || 0;
-        const cMuertos = parseInt(cantidadPollosMuertos) || 0;
-        const cLlenas = parseInt(cantidadJabasLlenas);
-        const cVacias = parseInt(cantidadJabasVacias);
-        const pPorJaba = parseInt(pollosPorJabaSanFernando) || 0;
+    if (activeTab === 'san_fernando') {
+      if (!campana || !cantidadJabasLlenas || !pollosPorJabaSanFernando || !pesoJabasLlenas || !costoUnitario) return;
 
-        const netoPeso = pLlenas - pVacias - pMuertos;
-        const cantidadTotalPollos = cLlenas * pPorJaba;
-        const promedioPolloLima = cantidadTotalPollos > 0 ? (pLlenas - pVacias) / (cantidadTotalPollos + cMuertos) : 0;
-        const promedioPolloFinal = (cantidadTotalPollos > 0) ? netoPeso / cantidadTotalPollos : 0;
-        const promedioJaba = cVacias > 0 ? pVacias / cVacias : 0;
-        const promedioPolloMuerto = cMuertos > 0 ? pMuertos / cMuertos : 0;
+      const cLlenas = parseInt(cantidadJabasLlenas);
+      const cVacias = parseInt(cantidadJabasVacias || '0');
+      const pPorJaba = parseInt(pollosPorJabaSanFernando);
+      const pLlenas = parseFloat(pesoJabasLlenas);
+      const pVacias = parseFloat(pesoJabasVacias || '0');
+      const pMuertos = parseFloat(pesoPollosMuertos || '0');
+      const cMuertos = parseInt(cantidadPollosMuertos || '0');
+      
+      const cantidadTotalPollos = cLlenas * pPorJaba;
+      const netoPeso = pLlenas - pVacias - pMuertos;
+      const promedioPolloLima = pLlenas / cantidadTotalPollos;
+      const promedioPolloFinal = netoPeso / cantidadTotalPollos;
+      const promedioJaba = netoPeso / cLlenas;
+      const promedioPolloMuerto = cMuertos > 0 ? pMuertos / cMuertos : 0;
+      
+      const totalCosto = cantidadTotalPollos * parseFloat(costoUnitario);
 
-        const totalCosto = netoPeso * parseFloat(costoUnitario);
+      transactionData = {
+        id: isEditing || crypto.randomUUID(),
+        date,
+        type: 'INGRESO',
+        productType: 'pollos_vivos',
+        ingresoType: 'san_fernando',
+        campana,
+        cantidadJabasLlenas: cLlenas,
+        cantidadJabasVacias: cVacias,
+        pollosPorJabaSanFernando: pPorJaba,
+        cantidadTotalPollos,
+        pesoJabasLlenas: pLlenas,
+        pesoJabasVacias: pVacias,
+        pesoPollosMuertos: pMuertos,
+        cantidadPollosMuertos: cMuertos,
+        netoPeso,
+        promedioPolloLima,
+        promedioPolloFinal,
+        promedioJaba,
+        promedioPolloMuerto,
+        costoUnitarioIn: parseFloat(costoUnitario),
+        totalCosto,
+        totalVenta: 0,
+        ganancia: 0,
+        hembrasIn: Math.floor(cantidadTotalPollos / 2),
+        machosIn: Math.ceil(cantidadTotalPollos / 2),
+      };
+    } else if (activeTab === 'pollos_vivos') {
+      if (!campana || !hembras || !machos || !costoUnitario) return;
+      if (ingresoType === 'granja' && !plantel) return;
 
-        transactionData = {
-          id: isEditing || crypto.randomUUID(),
-          date,
-          type: 'INGRESO',
-          productType: 'pollos_vivos',
-          campana,
-          ingresoType: 'san_fernando',
-          pesoJabasLlenas: pLlenas,
-          pesoJabasVacias: pVacias,
-          pesoPollosMuertos: pMuertos,
-          cantidadPollosMuertos: cMuertos,
-          cantidadJabasLlenas: cLlenas,
-          cantidadJabasVacias: cVacias,
-          pollosPorJabaSanFernando: pPorJaba,
-          netoPeso,
-          cantidadTotalPollos,
-          promedioPolloLima,
-          promedioPolloFinal,
-          promedioJaba,
-          promedioPolloMuerto,
-          hembrasIn: Math.floor(cantidadTotalPollos / 2), // Approximation if not specified
-          machosIn: Math.ceil(cantidadTotalPollos / 2),   // Approximation if not specified
-          costoUnitarioIn: parseFloat(costoUnitario),
-          totalCosto,
-          totalVenta: 0,
-          ganancia: 0,
-        };
-      } else {
-        if (!campana || !hembras || !machos || !costoUnitario) return;
-        if (ingresoType === 'granja' && !plantel) return;
+      const totalCosto = (parseInt(hembras) + parseInt(machos)) * parseFloat(costoUnitario);
 
-        const totalCosto = (parseInt(hembras) + parseInt(machos)) * parseFloat(costoUnitario);
-
-        transactionData = {
-          id: isEditing || crypto.randomUUID(),
-          date,
-          type: 'INGRESO',
-          productType: 'pollos_vivos',
-          campana,
-          ingresoType,
-          plantel: ingresoType === 'granja' ? plantel : undefined,
-          galponMachos: ingresoType === 'granja' ? galponMachos : undefined,
-          galponHembras: ingresoType === 'granja' ? galponHembras : undefined,
-          galpon: ingresoType === 'granja' ? `M:${galponMachos} | H:${galponHembras}` : 'Venta Directa',
-          hembrasIn: parseInt(hembras),
-          machosIn: parseInt(machos),
-          costoUnitarioIn: parseFloat(costoUnitario),
-          totalCosto,
-          totalVenta: 0,
-          ganancia: 0,
-        };
-      }
+      transactionData = {
+        id: isEditing || crypto.randomUUID(),
+        date,
+        type: 'INGRESO',
+        productType: 'pollos_vivos',
+        campana,
+        ingresoType,
+        plantel: ingresoType === 'granja' ? plantel : undefined,
+        galponMachos: ingresoType === 'granja' ? galponMachos : undefined,
+        galponHembras: ingresoType === 'granja' ? galponHembras : undefined,
+        galpon: ingresoType === 'granja' ? `M:${galponMachos} | H:${galponHembras}` : 'Venta Directa',
+        hembrasIn: parseInt(hembras),
+        machosIn: parseInt(machos),
+        costoUnitarioIn: parseFloat(costoUnitario),
+        totalCosto,
+        totalVenta: 0,
+        ganancia: 0,
+      };
     } else {
       if (!incubadora || !totalHI || !totalNacido || !enviadoLaboratorio || !costoUnitario) return;
       
@@ -211,16 +209,9 @@ export function Ingresos({ store }: { store: any }) {
     setCostoUnitario(t.costoUnitarioIn?.toString() || '');
     
     if (t.productType === 'pollos_vivos' || (!t.productType && t.campana)) {
-      setActiveTab('pollos_vivos');
-      setCampana(t.campana || '');
-      setIngresoType(t.ingresoType || 'granja');
-      setPlantel(t.plantel || 'EVP-01');
-      setGalponMachos(t.galponMachos || '01');
-      setGalponHembras(t.galponHembras || '02');
-      setHembras(t.hembrasIn?.toString() || '');
-      setMachos(t.machosIn?.toString() || '');
-      
       if (t.ingresoType === 'san_fernando') {
+        setActiveTab('san_fernando');
+        setCampana(t.campana || '');
         setPesoJabasLlenas(t.pesoJabasLlenas?.toString() || '');
         setPesoJabasVacias(t.pesoJabasVacias?.toString() || '');
         setPesoPollosMuertos(t.pesoPollosMuertos?.toString() || '');
@@ -228,6 +219,15 @@ export function Ingresos({ store }: { store: any }) {
         setCantidadJabasLlenas(t.cantidadJabasLlenas?.toString() || '');
         setCantidadJabasVacias(t.cantidadJabasVacias?.toString() || '');
         setPollosPorJabaSanFernando(t.pollosPorJabaSanFernando?.toString() || '');
+      } else {
+        setActiveTab('pollos_vivos');
+        setCampana(t.campana || '');
+        setIngresoType(t.ingresoType || 'granja');
+        setPlantel(t.plantel || 'EVP-01');
+        setGalponMachos(t.galponMachos || '01');
+        setGalponHembras(t.galponHembras || '02');
+        setHembras(t.hembrasIn?.toString() || '');
+        setMachos(t.machosIn?.toString() || '');
       }
     } else {
       setActiveTab('pollos_bebes');
@@ -258,7 +258,11 @@ export function Ingresos({ store }: { store: any }) {
   const ingresosVivos = ingresos.filter((t: Transaction) => t.productType === 'pollos_vivos' || (!t.productType && t.campana));
   const ingresosBebes = ingresos.filter((t: Transaction) => t.productType === 'pollos_bebes');
 
-  const currentIngresos = activeTab === 'pollos_vivos' ? ingresosVivos : ingresosBebes;
+  const currentIngresos = activeTab === 'pollos_bebes' 
+    ? ingresosBebes 
+    : activeTab === 'san_fernando'
+      ? ingresosVivos.filter(t => t.ingresoType === 'san_fernando')
+      : ingresosVivos.filter(t => t.ingresoType !== 'san_fernando');
 
   return (
     <>
@@ -301,6 +305,17 @@ export function Ingresos({ store }: { store: any }) {
             <Bird size={18} />
             Pollos Vivos
           </button>
+          <button
+            onClick={() => setActiveTab('san_fernando')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${
+              activeTab === 'san_fernando' 
+                ? 'bg-white text-emerald-700 shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+            }`}
+          >
+            <Bird size={18} />
+            San Fernando
+          </button>
         </div>
 
         {/* Desktop Table View */}
@@ -308,7 +323,7 @@ export function Ingresos({ store }: { store: any }) {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600 whitespace-nowrap">
               <thead className="bg-slate-50/50 text-slate-500 border-b border-slate-200">
-                {activeTab === 'pollos_vivos' ? (
+                {activeTab !== 'pollos_bebes' ? (
                   <tr>
                     <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Fecha</th>
                     <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Tipo</th>
@@ -342,7 +357,7 @@ export function Ingresos({ store }: { store: any }) {
                         {format(new Date(t.date), 'dd/MM/yyyy')}
                       </td>
                       
-                      {activeTab === 'pollos_vivos' ? (
+                      {activeTab !== 'pollos_bebes' ? (
                         <>
                           <td className="px-6 py-4">
                             <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${
@@ -412,7 +427,7 @@ export function Ingresos({ store }: { store: any }) {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={activeTab === 'pollos_vivos' ? 10 : 9} className="px-6 py-12 text-center text-slate-400 italic">
+                    <td colSpan={activeTab !== 'pollos_bebes' ? 10 : 9} className="px-6 py-12 text-center text-slate-400 italic">
                       No hay ingresos registrados.
                     </td>
                   </tr>
@@ -432,7 +447,7 @@ export function Ingresos({ store }: { store: any }) {
                     <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
                       {format(new Date(t.date), 'dd/MM/yyyy')}
                     </div>
-                    {activeTab === 'pollos_vivos' ? (
+                    {activeTab !== 'pollos_bebes' ? (
                       <div className="flex flex-wrap gap-2">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${
                           t.ingresoType === 'san_fernando'
@@ -459,7 +474,7 @@ export function Ingresos({ store }: { store: any }) {
                   </div>
                 </div>
                 
-                {activeTab === 'pollos_vivos' ? (
+                {activeTab !== 'pollos_bebes' ? (
                   <div className="space-y-3 mb-4">
                     {t.ingresoType === 'san_fernando' ? (
                       <>
@@ -582,18 +597,101 @@ export function Ingresos({ store }: { store: any }) {
                 />
               </div>
 
-              {activeTab === 'pollos_vivos' ? (
+              {activeTab === 'san_fernando' ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Lote (Campaña)</label>
+                    <input
+                      type="text"
+                      required
+                      value={campana}
+                      onChange={(e) => setCampana(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base"
+                      placeholder="Ej. SF-LIMA-01"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Jabas Llenas</label>
+                      <input type="number" required value={cantidadJabasLlenas} onChange={(e) => setCantidadJabasLlenas(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Jabas Vacías</label>
+                      <input type="number" value={cantidadJabasVacias} onChange={(e) => setCantidadJabasVacias(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pollos por Jaba</label>
+                      <input type="number" required value={pollosPorJabaSanFernando} onChange={(e) => setPollosPorJabaSanFernando(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Pollos Muertos</label>
+                      <input type="number" value={cantidadPollosMuertos} onChange={(e) => setCantidadPollosMuertos(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Jabas Llenas (Kg)</label>
+                      <input type="number" step="0.01" required value={pesoJabasLlenas} onChange={(e) => setPesoJabasLlenas(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Jabas Vacías (Kg)</label>
+                      <input type="number" step="0.01" value={pesoJabasVacias} onChange={(e) => setPesoJabasVacias(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Pollos Muertos (Kg)</label>
+                      <input type="number" step="0.01" value={pesoPollosMuertos} onChange={(e) => setPesoPollosMuertos(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
+                    </div>
+                    {cantidadJabasLlenas && pollosPorJabaSanFernando && (
+                      <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100 flex flex-col justify-center">
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Total de Pollos:</span>
+                        <span className="text-lg font-black text-emerald-700">
+                          {parseInt(cantidadJabasLlenas) * parseInt(pollosPorJabaSanFernando)} aves
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Resultados Calculados en Tiempo Real */}
+                  {(pesoJabasLlenas || pesoJabasVacias || pesoPollosMuertos) && (
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Resultados Calculados</h4>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                        <div className="flex justify-between border-b border-slate-200 pb-1">
+                          <span className="text-slate-500 font-bold uppercase">Peso Neto:</span>
+                          <span className="font-black text-emerald-600">{(parseFloat(pesoJabasLlenas || '0') - parseFloat(pesoJabasVacias || '0') - parseFloat(pesoPollosMuertos || '0')).toFixed(2)} Kg</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-200 pb-1">
+                          <span className="text-slate-500 font-bold uppercase">Prom. Lima:</span>
+                          <span className="font-bold text-slate-700">{(parseFloat(pesoJabasLlenas || '0') / (parseInt(cantidadJabasLlenas || '1') * parseInt(pollosPorJabaSanFernando || '1'))).toFixed(3)} Kg</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-200 pb-1">
+                          <span className="text-slate-500 font-bold uppercase">Prom. Final:</span>
+                          <span className="font-bold text-slate-700">{((parseFloat(pesoJabasLlenas || '0') - parseFloat(pesoJabasVacias || '0') - parseFloat(pesoPollosMuertos || '0')) / (parseInt(cantidadJabasLlenas || '1') * parseInt(pollosPorJabaSanFernando || '1'))).toFixed(3)} Kg</span>
+                        </div>
+                        <div className="flex justify-between border-b border-slate-200 pb-1">
+                          <span className="text-slate-500 font-bold uppercase">Prom. Jaba:</span>
+                          <span className="font-bold text-slate-700">{((parseFloat(pesoJabasLlenas || '0') - parseFloat(pesoJabasVacias || '0') - parseFloat(pesoPollosMuertos || '0')) / parseInt(cantidadJabasLlenas || '1')).toFixed(2)} Kg</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : activeTab === 'pollos_vivos' ? (
                 <>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Tipo de Ingreso</label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all cursor-pointer ${ingresoType === 'granja' ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}>
                         <input
                           type="radio"
                           name="ingresoType"
                           value="granja"
                           checked={ingresoType === 'granja'}
-                          onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
+                          onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa')}
                           className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
                         />
                         <div className="flex flex-col">
@@ -607,7 +705,7 @@ export function Ingresos({ store }: { store: any }) {
                           name="ingresoType"
                           value="venta_directa"
                           checked={ingresoType === 'venta_directa'}
-                          onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
+                          onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa')}
                           className="w-5 h-5 text-amber-600 focus:ring-amber-500"
                         />
                         <div className="flex flex-col">
@@ -615,199 +713,106 @@ export function Ingresos({ store }: { store: any }) {
                           <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Compra y Venta</span>
                         </div>
                       </label>
-                      <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all cursor-pointer ${ingresoType === 'san_fernando' ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-200' : 'bg-slate-50 border-slate-200 hover:border-slate-300'}`}>
-                        <input
-                          type="radio"
-                          name="ingresoType"
-                          value="san_fernando"
-                          checked={ingresoType === 'san_fernando'}
-                          onChange={(e) => setIngresoType(e.target.value as 'granja' | 'venta_directa' | 'san_fernando')}
-                          className="w-5 h-5 text-blue-600 focus:ring-blue-500"
-                        />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-black text-slate-800 uppercase tracking-tight">San Fernando</span>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Lima - Pesaje</span>
-                        </div>
-                      </label>
                     </div>
                   </div>
                   
-                  {ingresoType === 'san_fernando' ? (
-                    <div className="space-y-4">
+                  <div className="space-y-6 mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">Campaña / Lote San Fernando</label>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Campaña</label>
                         <input
                           type="text"
                           required
                           value={campana}
                           onChange={(e) => setCampana(e.target.value)}
                           className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base"
-                          placeholder="Ej. SF-LIMA-01"
+                          placeholder="Ej. C-01"
                         />
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {ingresoType === 'granja' && (
                         <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Jabas Llenas (Kg)</label>
-                          <input type="number" step="0.01" value={pesoJabasLlenas} onChange={(e) => setPesoJabasLlenas(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Jabas Vacías (Kg)</label>
-                          <input type="number" step="0.01" value={pesoJabasVacias} onChange={(e) => setPesoJabasVacias(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Jabas Llenas</label>
-                          <input type="number" value={cantidadJabasLlenas} onChange={(e) => setCantidadJabasLlenas(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Jabas Vacías</label>
-                          <input type="number" value={cantidadJabasVacias} onChange={(e) => setCantidadJabasVacias(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Pollos por Jaba</label>
-                          <input type="number" value={pollosPorJabaSanFernando} onChange={(e) => setPollosPorJabaSanFernando(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cant. Pollos Muertos</label>
-                          <input type="number" value={cantidadPollosMuertos} onChange={(e) => setCantidadPollosMuertos(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0" />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Peso Pollos Muertos (Kg)</label>
-                        <input type="number" step="0.01" value={pesoPollosMuertos} onChange={(e) => setPesoPollosMuertos(e.target.value)} onKeyDown={handleNumberKeyDown} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500" placeholder="0.00" />
-                      </div>
-                      
-                      {pesoJabasLlenas && pesoJabasVacias && cantidadJabasLlenas && pollosPorJabaSanFernando && (
-                        <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 space-y-2">
-                          <div className="flex justify-between text-xs font-bold text-emerald-800">
-                            <span>PESO NETO:</span>
-                            <span>{(parseFloat(pesoJabasLlenas) - parseFloat(pesoJabasVacias) - (parseFloat(pesoPollosMuertos) || 0)).toFixed(2)} Kg</span>
-                          </div>
-                          <div className="flex justify-between text-xs font-bold text-emerald-800">
-                            <span>CANTIDAD TOTAL POLLOS:</span>
-                            <span>{parseInt(cantidadJabasLlenas) * parseInt(pollosPorJabaSanFernando)} aves</span>
-                          </div>
-                          <div className="flex justify-between text-[10px] text-emerald-600">
-                            <span>PROMEDIO LIMA:</span>
-                            <span>{((parseFloat(pesoJabasLlenas) - parseFloat(pesoJabasVacias)) / (parseInt(cantidadJabasLlenas) * parseInt(pollosPorJabaSanFernando) + (parseInt(cantidadPollosMuertos) || 0))).toFixed(3)} Kg</span>
-                          </div>
-                          <div className="flex justify-between text-[10px] text-emerald-600">
-                            <span>PROMEDIO FINAL:</span>
-                            <span>{((parseFloat(pesoJabasLlenas) - parseFloat(pesoJabasVacias) - (parseFloat(pesoPollosMuertos) || 0)) / (parseInt(cantidadJabasLlenas) * parseInt(pollosPorJabaSanFernando))).toFixed(3)} Kg</span>
-                          </div>
-                          <div className="flex justify-between text-[10px] text-emerald-600">
-                            <span>PROMEDIO JABA:</span>
-                            <span>{(parseFloat(pesoJabasVacias) / parseInt(cantidadJabasLlenas)).toFixed(2)} Kg</span>
-                          </div>
-                          <div className="flex justify-between text-[10px] text-emerald-600">
-                            <span>PROMEDIO POLLO MUERTO:</span>
-                            <span>{parseInt(cantidadPollosMuertos) > 0 ? (parseFloat(pesoPollosMuertos) / parseInt(cantidadPollosMuertos)).toFixed(2) : '0.00'} Kg</span>
-                          </div>
+                          <label className="block text-sm font-bold text-slate-700 mb-2">Plantel</label>
+                          <select
+                            required
+                            value={plantel}
+                            onChange={(e) => setPlantel(e.target.value)}
+                            className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base bg-white"
+                          >
+                            <option value="EVP-01">EVP-01</option>
+                            <option value="EVP-02">EVP-02</option>
+                          </select>
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-2">Campaña</label>
-                      <input
-                        type="text"
-                        required
-                        value={campana}
-                        onChange={(e) => setCampana(e.target.value)}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base"
-                        placeholder="Ej. C-01"
-                      />
-                    </div>
-                    {ingresoType === 'granja' && (
-                      <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">Plantel</label>
-                        <select
-                          required
-                          value={plantel}
-                          onChange={(e) => setPlantel(e.target.value)}
-                          className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base bg-white"
-                        >
-                          <option value="EVP-01">EVP-01</option>
-                          <option value="EVP-02">EVP-02</option>
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-pink-50 p-4 rounded-xl border border-pink-100">
-                      <h4 className="text-sm font-bold text-pink-800 uppercase mb-4">Hembras (Brasa)</h4>
-                      <div className="space-y-4">
-                        {ingresoType === 'granja' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-pink-50 p-4 rounded-xl border border-pink-100">
+                        <h4 className="text-sm font-bold text-pink-800 uppercase mb-4">Hembras (Brasa)</h4>
+                        <div className="space-y-4">
+                          {ingresoType === 'granja' && (
+                            <div>
+                              <label className="block text-sm font-medium text-pink-700 mb-1.5">Galpón Asignado</label>
+                              <select
+                                value={galponHembras}
+                                onChange={(e) => setGalponHembras(e.target.value)}
+                                className="w-full px-4 py-3 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-base bg-white font-semibold text-pink-900"
+                              >
+                                <option value="01">Galpón 01</option>
+                                <option value="02">Galpón 02</option>
+                                <option value="03">Galpón 03</option>
+                                <option value="04">Galpón 04</option>
+                              </select>
+                            </div>
+                          )}
                           <div>
-                            <label className="block text-sm font-medium text-pink-700 mb-1.5">Galpón Asignado</label>
-                            <select
-                              value={galponHembras}
-                              onChange={(e) => setGalponHembras(e.target.value)}
-                              className="w-full px-4 py-3 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-base bg-white font-semibold text-pink-900"
-                            >
-                              <option value="01">Galpón 01</option>
-                              <option value="02">Galpón 02</option>
-                              <option value="03">Galpón 03</option>
-                              <option value="04">Galpón 04</option>
-                            </select>
+                            <label className="block text-sm font-medium text-pink-700 mb-1.5">Cantidad Ingreso</label>
+                            <input
+                              type="number"
+                              min="0"
+                              required
+                              value={hembras}
+                              onChange={(e) => setHembras(e.target.value)}
+                              onKeyDown={handleNumberKeyDown}
+                              className="w-full px-4 py-3 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-lg font-semibold"
+                              placeholder="0"
+                            />
                           </div>
-                        )}
-                        <div>
-                          <label className="block text-sm font-medium text-pink-700 mb-1.5">Cantidad Ingreso</label>
-                          <input
-                            type="number"
-                            min="0"
-                            required
-                            value={hembras}
-                            onChange={(e) => setHembras(e.target.value)}
-                            onKeyDown={handleNumberKeyDown}
-                            className="w-full px-4 py-3 border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 text-lg font-semibold"
-                            placeholder="0"
-                          />
                         </div>
                       </div>
-                    </div>
-                    <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                      <h4 className="text-sm font-bold text-emerald-800 uppercase mb-4">Machos (Presa)</h4>
-                      <div className="space-y-4">
-                        {ingresoType === 'granja' && (
+                      <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                        <h4 className="text-sm font-bold text-emerald-800 uppercase mb-4">Machos (Presa)</h4>
+                        <div className="space-y-4">
+                          {ingresoType === 'granja' && (
+                            <div>
+                              <label className="block text-sm font-medium text-emerald-700 mb-1.5">Galpón Asignado</label>
+                              <select
+                                value={galponMachos}
+                                onChange={(e) => setGalponMachos(e.target.value)}
+                                className="w-full px-4 py-3 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base bg-white font-semibold text-emerald-900"
+                              >
+                                <option value="01">Galpón 01</option>
+                                <option value="02">Galpón 02</option>
+                                <option value="03">Galpón 03</option>
+                                <option value="04">Galpón 04</option>
+                              </select>
+                            </div>
+                          )}
                           <div>
-                            <label className="block text-sm font-medium text-emerald-700 mb-1.5">Galpón Asignado</label>
-                            <select
-                              value={galponMachos}
-                              onChange={(e) => setGalponMachos(e.target.value)}
-                              className="w-full px-4 py-3 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-base bg-white font-semibold text-emerald-900"
-                            >
-                              <option value="01">Galpón 01</option>
-                              <option value="02">Galpón 02</option>
-                              <option value="03">Galpón 03</option>
-                              <option value="04">Galpón 04</option>
-                            </select>
+                            <label className="block text-sm font-medium text-emerald-700 mb-1.5">Cantidad Ingreso</label>
+                            <input
+                              type="number"
+                              min="0"
+                              required
+                              value={machos}
+                              onChange={(e) => setMachos(e.target.value)}
+                              onKeyDown={handleNumberKeyDown}
+                              className="w-full px-4 py-3 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-lg font-semibold"
+                              placeholder="0"
+                            />
                           </div>
-                        )}
-                        <div>
-                          <label className="block text-sm font-medium text-emerald-700 mb-1.5">Cantidad Ingreso</label>
-                          <input
-                            type="number"
-                            min="0"
-                            required
-                            value={machos}
-                            onChange={(e) => setMachos(e.target.value)}
-                            onKeyDown={handleNumberKeyDown}
-                            className="w-full px-4 py-3 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-lg font-semibold"
-                            placeholder="0"
-                          />
                         </div>
                       </div>
                     </div>
                   </div>
-                </>
-              )}
               </>
             ) : (
                 <>
